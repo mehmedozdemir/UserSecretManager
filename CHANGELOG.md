@@ -9,6 +9,8 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-26
+
 ### Fixed
 - Profil uygulama penceresi profilin secret'larını göstermiyordu; profil `secrets.json` ile aynıysa yalnızca
   "değişiklik yok" yazıyor ve "Uygula" açıklamasız pasif kalıyordu. Pencere artık profildeki her secret'ı durumuyla
