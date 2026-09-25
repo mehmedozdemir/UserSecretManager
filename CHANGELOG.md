@@ -9,6 +9,8 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-25
+
 ### Added
 - Solution (`.sln`, `.slnx`) ve proje (`.csproj`, `.fsproj`, `.vbproj`) ekleme; eklenen öğeler, favoriler ve tema kalıcı olarak hatırlanır.
 - Proje keşfi: `appsettings*.json` ortamları, `launchSettings.json` ortamları, `UserSecretsId` kaynağı
