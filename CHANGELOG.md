@@ -9,6 +9,8 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-25
+
 ### Added
 - Projeye ek JSON yapılandırma dosyaları (`ocelot.json`, `serilog.json` vb.) eklenebilir. Bu dosyalar matriste ayrı
   sütun olarak görünür, tüm ortamlarda geçerli sayılır ve secret'a taşımaya katılır. Seçim proje bazında hatırlanır;
