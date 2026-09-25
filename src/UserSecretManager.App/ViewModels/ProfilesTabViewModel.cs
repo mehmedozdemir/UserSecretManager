@@ -75,8 +75,11 @@ public sealed partial class ProfilesTabViewModel(ProjectViewModel project) : Obs
         var editor = new ProfileEditorViewModel(_configuration!, Store, UserSecretsId!);
         if (await project.Services.Dialogs.ShowDialogAsync(editor))
         {
+            var matchesCurrent = SecretProfileStore.Matches(editor.PreviewValues, _configuration!.Secrets);
             Run(() => Store.Save(UserSecretsId!, editor.Name, editor.PreviewValues, editor.Description),
-                $"'{editor.Name.Trim()}' profili kaydedildi.");
+                matchesCurrent
+                    ? $"'{editor.Name.Trim()}' profili kaydedildi. Şu anki secret'larla aynı olduğu için etkin görünür; başka bir profile geçtikten sonra buna dönmek için uygulayabilirsiniz."
+                    : $"'{editor.Name.Trim()}' profili kaydedildi.");
         }
     }
 
@@ -100,7 +103,7 @@ public sealed partial class ProfilesTabViewModel(ProjectViewModel project) : Obs
 
         var dialog = new ApplySecretsViewModel($"'{row.Name}' profilini uygula", $"'{row.Name}' profili", values,
             _configuration!, project.Services.ChangeSets);
-        if (await project.Services.Dialogs.ShowDialogAsync(dialog) && dialog.ChangeSet is { } changeSet)
+        if (await project.Services.Dialogs.ShowDialogAsync(dialog) && dialog.ChangeSet is { IsEmpty: false } changeSet)
         {
             await project.ApplyChangesAsync(changeSet, $"'{row.Name}' profili uygulandı.");
         }

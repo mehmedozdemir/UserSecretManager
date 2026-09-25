@@ -97,6 +97,35 @@ public sealed class SecretProfileTests : IDisposable
     }
 
     [Fact]
+    public void Compare_ReportsEveryKeyWithItsEffect()
+    {
+        var current = new SecretCollection("x", true, null) { ["Same"] = "1", ["Diff"] = "old", ["OnlyCurrent"] = "c" };
+        KeyValuePair<string, string>[] profile = [new("Same", "1"), new("diff", "new"), new("New", "n")];
+
+        var replace = ProfileValues.Compare(current, profile, ProfileApplyMode.Replace);
+        var merge = ProfileValues.Compare(current, profile, ProfileApplyMode.Merge);
+
+        Assert.Equal(
+            [SecretChangeKind.Unchanged, SecretChangeKind.Changed, SecretChangeKind.Added, SecretChangeKind.Removed],
+            replace.Select(c => c.Kind));
+        Assert.Equal(("old", "new"), (replace[1].CurrentValue, replace[1].NewValue));
+        Assert.Null(replace[3].NewValue);
+        Assert.Equal(SecretChangeKind.Kept, merge[3].Kind);
+        Assert.Equal("c", merge[3].NewValue);
+    }
+
+    [Fact]
+    public void Compare_ProfileEqualToSecrets_IsAllUnchanged()
+    {
+        var current = new SecretCollection("x", true, null) { ["A"] = "1", ["B"] = "2" };
+
+        var changes = ProfileValues.Compare(current, current.ToList(), ProfileApplyMode.Replace);
+
+        Assert.All(changes, c => Assert.Equal(SecretChangeKind.Unchanged, c.Kind));
+        Assert.Equal(2, changes.Count);
+    }
+
+    [Fact]
     public void ProfileValues_FromEnvironment_AndApplyModes()
     {
         var store = new UserSecretsStore(_temp.Combine("secrets"));

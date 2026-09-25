@@ -130,6 +130,16 @@ public sealed partial class ApplySecretsViewModel : DialogViewModelBase
     [ObservableProperty]
     private string? _error;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSecretsTab), nameof(IsDiffTab))]
+    private int _selectedTab;
+
+    [ObservableProperty]
+    private bool _revealValues;
+
+    [ObservableProperty]
+    private IReadOnlyList<SecretChangeRowViewModel> _rows = [];
+
     public ApplySecretsViewModel(string title, string sourceName, IReadOnlyList<KeyValuePair<string, string>> values,
         ProjectConfiguration configuration, ChangeSetFactory factory, string? details = null, string? warning = null)
     {
@@ -150,6 +160,12 @@ public sealed partial class ApplySecretsViewModel : DialogViewModelBase
 
     public override string Title { get; }
 
+    public override double DialogWidth => 900;
+
+    public override double DialogHeight => 640;
+
+    public override bool CanResize => true;
+
     public string SourceName { get; }
 
     public string? Details { get; }
@@ -162,15 +178,11 @@ public sealed partial class ApplySecretsViewModel : DialogViewModelBase
 
     public int MissingKeyCount { get; }
 
+    public int ValueCount => _values.Count;
+
     public bool ReplaceDeletesSecrets => Replace && MissingKeyCount > 0;
 
     public string DeleteWarning => $"{SourceName} içinde olmayan {MissingKeyCount} secret silinecek.";
-
-    public override double DialogWidth => 900;
-
-    public override double DialogHeight => 620;
-
-    public override bool CanResize => true;
 
     public ChangePreviewViewModel Preview { get; } = new();
 
@@ -178,22 +190,65 @@ public sealed partial class ApplySecretsViewModel : DialogViewModelBase
 
     public bool CanApply => ChangeSet is { IsEmpty: false };
 
-    public string Summary => ChangeSet is { IsEmpty: true }
-        ? "secrets.json zaten bu değerlerle aynı; değişiklik yok."
-        : Replace
-            ? $"secrets.json tamamen {SourceName} ile değiştirilecek; içinde olmayan secret'lar silinir."
-            : $"{SourceName} içindeki değerler mevcut secret'ların üzerine yazılacak; diğer secret'lar korunur.";
+    public bool IsAlreadyApplied => ChangeSet is { IsEmpty: true };
+
+    public string AlreadyAppliedText =>
+        $"secrets.json zaten {SourceName} ile aynı değerleri içeriyor; uygulanacak bir değişiklik yok.";
+
+    public bool IsSecretsTab => SelectedTab == 0;
+
+    public bool IsDiffTab => SelectedTab == 1;
+
+    public string Summary => Replace
+        ? $"secrets.json tamamen {SourceName} ile değiştirilecek; içinde olmayan secret'lar silinir."
+        : $"{SourceName} içindeki değerler mevcut secret'ların üzerine yazılacak; diğer secret'lar korunur.";
+
+    public string CountsText
+    {
+        get
+        {
+            var parts = new[]
+                {
+                    (SecretChangeKind.Changed, "değişecek"),
+                    (SecretChangeKind.Added, "eklenecek"),
+                    (SecretChangeKind.Removed, "silinecek"),
+                    (SecretChangeKind.Unchanged, "aynı"),
+                    (SecretChangeKind.Kept, "korunacak"),
+                }
+                .Select(p => (Count: Rows.Count(r => r.Kind == p.Item1), Label: p.Item2))
+                .Where(p => p.Count > 0)
+                .Select(p => $"{p.Count} {p.Label}");
+            return $"{ValueCount} secret · " + string.Join(" · ", parts);
+        }
+    }
 
     partial void OnReplaceChanged(bool value) => Refresh();
+
+    partial void OnRevealValuesChanged(bool value)
+    {
+        foreach (var row in Rows)
+        {
+            row.Reveal = value;
+        }
+    }
+
+    [RelayCommand]
+    private void ShowSecrets() => SelectedTab = 0;
+
+    [RelayCommand]
+    private void ShowDiff() => SelectedTab = 1;
 
     [RelayCommand(CanExecute = nameof(CanApply))]
     private void Apply() => Close(true);
 
     private void Refresh()
     {
+        var mode = Replace ? ProfileApplyMode.Replace : ProfileApplyMode.Merge;
+        Rows = ProfileValues.Compare(_configuration.Secrets!, _values, mode)
+            .Select(c => new SecretChangeRowViewModel(c) { Reveal = RevealValues })
+            .ToList();
         try
         {
-            var mode = Replace ? ProfileApplyMode.Replace : ProfileApplyMode.Merge;
             var target = ProfileValues.Apply(_configuration.Secrets!, _values, mode);
             ChangeSet = _factory.ReplaceSecrets(_configuration, target, $"{SourceName} uygulandı ({(Replace ? "değiştir" : "birleştir")})");
             Error = null;
@@ -206,10 +261,48 @@ public sealed partial class ApplySecretsViewModel : DialogViewModelBase
 
         Preview.Load(ChangeSet);
         OnPropertyChanged(nameof(CanApply));
+        OnPropertyChanged(nameof(IsAlreadyApplied));
         OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(CountsText));
         OnPropertyChanged(nameof(ReplaceDeletesSecrets));
         ApplyCommand.NotifyCanExecuteChanged();
     }
+}
+
+public sealed partial class SecretChangeRowViewModel(SecretChange change) : ObservableObject
+{
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayValue), nameof(DisplayPreviousValue))]
+    private bool _reveal;
+
+    public string Key => change.Key;
+
+    public SecretChangeKind Kind => change.Kind;
+
+    public string StatusText => change.Kind switch
+    {
+        SecretChangeKind.Changed => "Değişecek",
+        SecretChangeKind.Added => "Eklenecek",
+        SecretChangeKind.Removed => "Silinecek",
+        SecretChangeKind.Kept => "Korunacak",
+        _ => "Aynı",
+    };
+
+    public bool IsChanged => change.Kind == SecretChangeKind.Changed;
+
+    public bool IsAdded => change.Kind == SecretChangeKind.Added;
+
+    public bool IsRemoved => change.Kind == SecretChangeKind.Removed;
+
+    public bool IsNeutral => change.Kind is SecretChangeKind.Unchanged or SecretChangeKind.Kept;
+
+    public string DisplayValue => Show(change.NewValue ?? change.CurrentValue);
+
+    public bool HasPreviousValue => change.Kind == SecretChangeKind.Changed;
+
+    public string DisplayPreviousValue => "önceki: " + Show(change.CurrentValue);
+
+    private string Show(string? value) => string.IsNullOrEmpty(value) ? "\"\"" : Reveal ? value : ValueMask.Mask(value);
 }
 
 /// <summary>Single text input with validation.</summary>
