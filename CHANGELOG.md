@@ -9,6 +9,8 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-26
+
 ### Added
 - Profil düzenleyici: profilin secret değerleri tabloda düzenlenir; anahtar eklenip çıkarılabilir, profil yeniden
   adlandırılabilir. Kaydetmek yalnızca profili değiştirir, `secrets.json` profil uygulanınca güncellenir.
