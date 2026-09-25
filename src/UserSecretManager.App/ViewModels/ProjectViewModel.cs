@@ -48,6 +48,7 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
         Config = new ConfigTabViewModel(this);
         Secrets = new SecretsTabViewModel(this);
         Effective = new EffectiveTabViewModel();
+        Profiles = new ProfilesTabViewModel(this);
         History = new HistoryTabViewModel(this);
     }
 
@@ -58,6 +59,8 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
     public SecretsTabViewModel Secrets { get; }
 
     public EffectiveTabViewModel Effective { get; }
+
+    public ProfilesTabViewModel Profiles { get; }
 
     public HistoryTabViewModel History { get; }
 
@@ -125,6 +128,7 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
         Config.Load(Configuration);
         Secrets.Load(Configuration);
         Effective.Load(Configuration);
+        Profiles.Load(Configuration);
         History.Load();
         Notices = BuildNotices();
         IsOutdated = false;
@@ -211,7 +215,11 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
 
     public void Dispose() => StopWatching();
 
-    private async Task<bool> EnsureNoUnsavedSecretsAsync()
+    internal void ShowStatus(string message, bool isError = false) => _main.ShowStatus(message, isError);
+
+    internal Task ApplyChangesAsync(ChangeSet changeSet, string successMessage) => ApplyAsync(changeSet, successMessage);
+
+    internal async Task<bool> EnsureNoUnsavedSecretsAsync()
     {
         if (!Secrets.IsDirty)
         {

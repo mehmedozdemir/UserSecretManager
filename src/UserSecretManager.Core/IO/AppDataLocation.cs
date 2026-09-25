@@ -26,4 +26,10 @@ public sealed class AppDataLocation
 
     /// <summary>Directory that holds one sub-directory per backup.</summary>
     public string BackupsDirectory => Path.Combine(RootDirectory, "backups");
+
+    /// <summary>Directory that holds encrypted secret profiles, one sub-directory per UserSecretsId.</summary>
+    public string ProfilesDirectory => Path.Combine(RootDirectory, "profiles");
+
+    /// <summary>Key file used to encrypt profiles where DPAPI is not available.</summary>
+    public string ProfileKeyFile => Path.Combine(RootDirectory, "profiles.key");
 }

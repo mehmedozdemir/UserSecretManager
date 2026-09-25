@@ -1,7 +1,9 @@
 using UserSecretManager.Core.History;
 using UserSecretManager.Core.IO;
 using UserSecretManager.Core.Migration;
+using UserSecretManager.Core.Profiles;
 using UserSecretManager.Core.Secrets;
+using UserSecretManager.Core.Security;
 using UserSecretManager.Core.Workspace;
 
 namespace UserSecretManager.App.Services;
@@ -20,6 +22,7 @@ public sealed class AppServices
         ChangeSets = new ChangeSetFactory(SecretsStore);
         Planner = new MigrationPlanner(SecretsStore);
         Workspace = new WorkspaceStore(location.WorkspaceFile);
+        Profiles = new SecretProfileStore(location.ProfilesDirectory, SecretProtectors.CreateDefault(location));
     }
 
     public AppDataLocation Location { get; }
@@ -39,4 +42,6 @@ public sealed class AppServices
     public MigrationPlanner Planner { get; }
 
     public WorkspaceStore Workspace { get; }
+
+    public SecretProfileStore Profiles { get; }
 }

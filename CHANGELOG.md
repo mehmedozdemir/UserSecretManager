@@ -30,6 +30,10 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
   bulunamayan dosyalar uyarı olarak gösterilir.
 - "Etkin yapılandırma" sekmesi: seçilen ortam ve launch profili için uygulamanın göreceği son değerler, her değerin
   kaynağı ve ezdiği katmanlar. Development dışı ortamlarda boş kalan (ör. secret'a taşınmış) değerler ayrıca uyarılır.
+- Secret profilleri: secret değerlerinin adlandırılmış, şifreli kopyaları (Windows'ta DPAPI, diğer sistemlerde yalnızca
+  kullanıcının okuyabildiği anahtarla AES-256-GCM). Profil şu anki secret'lardan veya bir ortamın değerlerinden
+  oluşturulur; diff önizlemesiyle "değiştir" ya da "birleştir" modunda `secrets.json`'a uygulanır ve geçmişe yedeklenir.
+  secrets.json ile birebir aynı olan profil "Etkin" olarak işaretlenir.
 
 ### Fixed
 - Seçilebilir metinlerde (anahtar adları, yollar) sabit genişlikli font ve ikincil metin stilleri uygulanmıyordu.

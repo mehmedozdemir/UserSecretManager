@@ -22,6 +22,41 @@
         </StackPanel>
       </Grid>
     </DataTemplate>
+    <DataTemplate DataType="vm:TextInputViewModel">
+      <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="24,20,24,16">
+        <TextBlock Grid.Row="0" Text="{Binding Label}" Margin="0,0,0,6" />
+        <TextBox Grid.Row="1" Text="{Binding Text}" />
+        <TextBlock Grid.Row="2" Text="{Binding ErrorText}" IsVisible="{Binding HasError}" Classes="danger" Margin="0,4,0,0" />
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+          <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
+          <Button Classes="primary" Content="Tamam" Command="{Binding ConfirmCommand}" IsDefault="True" />
+        </StackPanel>
+      </Grid>
+    </DataTemplate>
+    <DataTemplate DataType="vm:ProfileEditorViewModel">
+      <v:ProfileEditorView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ApplyProfileViewModel">
+      <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20,16,20,14">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="16" Margin="0,0,0,10">
+          <RadioButton GroupName="applyMode" IsChecked="{Binding Replace}" Content="Değiştir (secrets.json = profil)" />
+          <RadioButton GroupName="applyMode" IsChecked="{Binding !Replace}" Content="Birleştir (profil değerlerini üzerine yaz)" />
+        </StackPanel>
+        <StackPanel Grid.Row="1" Spacing="4" Margin="0,0,0,10">
+          <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontWeight="Medium" />
+          <Border Classes="notice warning" IsVisible="{Binding ReplaceDeletesSecrets}">
+            <TextBlock Text="{Binding DeleteWarning}" TextWrapping="Wrap" />
+          </Border>
+          <TextBlock Text="{Binding Error}" Classes="danger" TextWrapping="Wrap"
+                     IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+        <v:ChangePreviewView Grid.Row="2" DataContext="{Binding Preview}" />
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,14,0,0">
+          <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
+          <Button Classes="primary" Content="Uygula" Command="{Binding ApplyCommand}" />
+        </StackPanel>
+      </Grid>
+    </DataTemplate>
     <DataTemplate DataType="vm:MigrationReviewViewModel">
       <v:MigrationReviewView />
     </DataTemplate>

@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UserSecretManager.App.ViewModels"
+             x:Class="UserSecretManager.App.Views.ProfileEditorView"
+             x:DataType="vm:ProfileEditorViewModel">
+  <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="20,16,20,14">
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,12">
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="Ad" VerticalAlignment="Center" Margin="0,0,12,0" />
+      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}" Watermark="ör. Local, Staging DB" />
+      <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding NameError}" IsVisible="{Binding HasNameError}"
+                 Classes="danger" Margin="0,4,0,0" />
+      <TextBlock Grid.Row="2" Grid.Column="1" IsVisible="{Binding WillOverwrite}" Margin="0,4,0,0"
+                 Foreground="{DynamicResource WarningBrush}" Text="Bu adda bir profil var; değerleri değiştirilecek." />
+      <TextBlock Grid.Row="3" Grid.Column="0" Text="Açıklama" VerticalAlignment="Center" Margin="0,8,12,0" />
+      <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Description}" Margin="0,8,0,0" Watermark="İsteğe bağlı" />
+    </Grid>
+
+    <StackPanel Grid.Row="1" Spacing="6" Margin="0,0,0,10">
+      <TextBlock Text="DEĞERLERİN KAYNAĞI" Classes="section" />
+      <RadioButton GroupName="profileSource" IsChecked="{Binding FromCurrentSecrets}"
+                   Content="Şu anki secret'lar (secrets.json)" />
+      <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding HasEnvironments}">
+        <RadioButton GroupName="profileSource" IsChecked="{Binding !FromCurrentSecrets}"
+                     Content="Bir ortamın değerleri:" VerticalAlignment="Center" />
+        <ComboBox ItemsSource="{Binding Environments}" SelectedItem="{Binding Environment}" MinWidth="160"
+                  IsEnabled="{Binding !FromCurrentSecrets}" />
+      </StackPanel>
+      <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !FromCurrentSecrets}"
+                 Text="Mevcut secret anahtarlarının seçilen ortamda (appsettings.json + appsettings.{Ortam}.json) aldığı değerler kullanılır." />
+    </StackPanel>
+
+    <Border Grid.Row="2" Classes="notice warning" IsVisible="{Binding HasMissing}" Margin="0,0,0,10">
+      <TextBlock Text="{Binding MissingText}" TextWrapping="Wrap" />
+    </Border>
+
+    <Border Grid.Row="3" Classes="card" ClipToBounds="True">
+      <Panel>
+        <ListBox Classes="plain" ItemsSource="{Binding PreviewRows}">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:ProfileValueRowViewModel">
+              <Grid ColumnDefinitions="*,*" Margin="12,5">
+                <TextBlock Grid.Column="0" Text="{Binding Key}" Classes="mono" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Text="{Binding MaskedValue}" Classes="mono muted" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock IsVisible="{Binding !HasPreview}" Classes="muted" Margin="16" TextWrapping="Wrap"
+                   Text="Profile alınacak değer yok." />
+      </Panel>
+    </Border>
+
+    <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,14,0,0">
+      <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
+      <Button Classes="primary" Content="Profili kaydet" Command="{Binding SaveCommand}" IsDefault="True" />
+    </StackPanel>
+  </Grid>
+</UserControl>
