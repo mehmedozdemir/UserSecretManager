@@ -96,13 +96,13 @@ public sealed class MigrationPlanner
         return new MigrationItem(key, candidates, candidates[0], actions);
     }
 
-    private static int Rank(AppSettingsFile file) => file.IsDevelopment ? 1 : file.IsBase ? 2 : 3;
+    private static int Rank(AppSettingsFile file) => file.IsDevelopment ? 1 : file.AppliesToAllEnvironments ? 2 : 3;
 
-    private static bool IsClearedByDefault(AppSettingsFile file) => file.IsBase || file.IsDevelopment;
+    private static bool IsClearedByDefault(AppSettingsFile file) => file.AppliesToAllEnvironments || file.IsDevelopment;
 
     private static string? WarningFor(AppSettingsFile file, string key)
     {
-        if (file.IsBase || file.IsDevelopment)
+        if (file.AppliesToAllEnvironments || file.IsDevelopment)
         {
             return null;
         }
@@ -170,13 +170,13 @@ public sealed class MigrationPlanner
                 $"{conflicts} anahtarın dosyalarda farklı değerleri var. Varsayılan olarak Development'ta etkin olan değer seçildi; kontrol edin."));
         }
 
-        var clearsBase = items.Any(i => i.FileActions.Any(a => a.File.IsBase));
-        var hasOtherEnvironments = configuration.Files.Any(f => !f.IsBase && !f.IsDevelopment) ||
+        var clearsBase = items.Any(i => i.FileActions.Any(a => a.File.AppliesToAllEnvironments));
+        var hasOtherEnvironments = configuration.Files.Any(f => f.Environment is not null && !f.IsDevelopment) ||
                                    configuration.Project.LaunchEnvironments.Any(e => !AppSettingsFile.IsDevelopmentName(e));
         if (clearsBase && hasOtherEnvironments)
         {
             notices.Add(new PlanNotice(NoticeSeverity.Warning,
-                "appsettings.json tüm ortamlarda yüklenir. Buradan temizlenen değerler Development dışı ortamlarda " +
+                "appsettings.json ve ek yapılandırma dosyaları tüm ortamlarda yüklenir. Buradan temizlenen değerler Development dışı ortamlarda " +
                 "ortam değişkeni veya secret vault ile sağlanmalıdır."));
         }
     }

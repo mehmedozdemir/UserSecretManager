@@ -39,17 +39,35 @@ public sealed class ProjectConfiguration
     /// <summary>Error reading the secrets file, if any.</summary>
     public string? SecretsError { get; }
 
-    /// <summary>Loads the snapshot.</summary>
-    public static ProjectConfiguration Load(ProjectInfo project, UserSecretsStore store)
+    /// <summary>Custom files that were configured but no longer exist.</summary>
+    public IReadOnlyList<string> MissingCustomFiles { get; private set; } = [];
+
+    /// <summary>
+    /// Loads the snapshot. <paramref name="customFiles"/> are extra JSON files (absolute, or relative to the project
+    /// directory) that the user added to the project.
+    /// </summary>
+    public static ProjectConfiguration Load(ProjectInfo project, UserSecretsStore store, IEnumerable<string>? customFiles = null)
     {
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(store);
 
+        var customPaths = (customFiles ?? [])
+            .Select(p => Path.GetFullPath(p, project.Directory))
+            .Where(p => !project.ConfigFilePaths.Contains(p, StringComparer.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
         var files = project.ConfigFilePaths
             .Select(AppSettingsFile.Load)
+            .Concat(customPaths.Where(File.Exists).Select(AppSettingsFile.LoadCustom))
             .Order(Comparer<AppSettingsFile>.Create(AppSettingsFile.CompareForDisplay))
             .ToList();
+        var configuration = LoadSecrets(project, store, files);
+        configuration.MissingCustomFiles = customPaths.Where(p => !File.Exists(p)).ToList();
+        return configuration;
+    }
 
+    private static ProjectConfiguration LoadSecrets(ProjectInfo project, UserSecretsStore store, List<AppSettingsFile> files)
+    {
         if (project.SecretsId.Id is not { } id)
         {
             return new ProjectConfiguration(project, files, new SecretCollection(string.Empty, false, null), string.Empty, null);

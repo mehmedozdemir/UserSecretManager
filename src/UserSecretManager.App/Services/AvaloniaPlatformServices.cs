@@ -32,6 +32,25 @@ public sealed class AvaloniaPlatformServices(Func<Window?> owner) : IDialogServi
         return files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
     }
 
+    public async Task<IReadOnlyList<string>> PickJsonFilesAsync(string startDirectory)
+    {
+        var window = owner();
+        if (window is null)
+        {
+            return [];
+        }
+
+        var files = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Ek yapılandırma dosyası seçin",
+            AllowMultiple = true,
+            FileTypeFilter = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
+            SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(startDirectory),
+        });
+
+        return files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
+    }
+
     public Task<bool> ConfirmAsync(string title, string message, string confirmText, bool isDestructive = false) =>
         ShowDialogAsync(new MessageDialogViewModel(title, message, confirmText, "Vazgeç", isDestructive));
 

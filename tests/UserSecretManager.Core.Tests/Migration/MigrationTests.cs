@@ -162,6 +162,38 @@ public sealed class MigrationTests : IDisposable
     }
 
     [Fact]
+    public void Load_IncludesCustomFiles_AndReportsMissingOnes()
+    {
+        _temp.Write("Api/config/ocelot.json", """{ "GlobalConfiguration": { "ApiKey": "gw-key" } }""");
+
+        var configuration = ProjectConfiguration.Load(ProjectInspector.Inspect(_projectPath), _store,
+            ["config/ocelot.json", "missing.json"]);
+
+        var custom = configuration.Files[^1];
+        Assert.True(custom.IsCustom);
+        Assert.True(custom.AppliesToAllEnvironments);
+        Assert.False(custom.IsBase);
+        Assert.Equal("ocelot.json", custom.DisplayName);
+        Assert.Equal(["missing.json"], configuration.MissingCustomFiles.Select(Path.GetFileName));
+        Assert.Contains(configuration.BuildEntries(), e => e.Key == "GlobalConfiguration:ApiKey");
+    }
+
+    [Fact]
+    public void CreatePlan_ClearsCustomFilesByDefault_WithoutEnvironmentWarning()
+    {
+        _temp.Write("Api/ocelot.json", """{ "Jwt": { "Key": "gateway-key" } }""");
+        var configuration = ProjectConfiguration.Load(ProjectInspector.Inspect(_projectPath), _store, ["ocelot.json"]);
+
+        var plan = new MigrationPlanner(_store).CreatePlan(configuration, ["Jwt:Key"]);
+
+        var custom = plan.Items[0].FileActions.Single(a => a.File.IsCustom);
+        Assert.True(custom.IsEnabled);
+        Assert.Null(custom.Warning);
+        Assert.True(plan.Items[0].HasConflict);
+        Assert.Equal("same-key", plan.Items[0].Selected.Value);
+    }
+
+    [Fact]
     public void BuildEntries_CombinesFilesAndSecrets()
     {
         var entries = LoadConfiguration().BuildEntries();

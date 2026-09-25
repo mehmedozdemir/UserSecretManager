@@ -12,8 +12,9 @@ public sealed partial class AppSettingsFile
     public const string DevelopmentEnvironment = "Development";
 
     private AppSettingsFile(string path, string? environment, TextFileContent content,
-        JsonConfigDocument? document, string? parseError)
+        JsonConfigDocument? document, string? parseError, bool isCustom = false)
     {
+        IsCustom = isCustom;
         Path = path;
         Environment = environment;
         Content = content;
@@ -31,13 +32,22 @@ public sealed partial class AppSettingsFile
     public string? Environment { get; }
 
     /// <summary>Whether this is <c>appsettings.json</c>, which every environment loads.</summary>
-    public bool IsBase => Environment is null;
+    public bool IsBase => Environment is null && !IsCustom;
+
+    /// <summary>
+    /// Whether this is an extra JSON file the user added (e.g. <c>ocelot.json</c>). Such files are assumed to be
+    /// loaded in every environment, after the default sources.
+    /// </summary>
+    public bool IsCustom { get; }
+
+    /// <summary>Whether the file is not tied to one environment (base or custom file).</summary>
+    public bool AppliesToAllEnvironments => Environment is null;
 
     /// <summary>Whether this file belongs to the Development environment.</summary>
     public bool IsDevelopment => IsDevelopmentName(Environment);
 
-    /// <summary>Short label for display: "Base" or the environment name.</summary>
-    public string DisplayName => Environment ?? "Base";
+    /// <summary>Short label for display: "Base", the environment name or the custom file name.</summary>
+    public string DisplayName => IsCustom ? FileName : Environment ?? "Base";
 
     /// <summary>Raw content as read from disk.</summary>
     public TextFileContent Content { get; }
@@ -76,7 +86,16 @@ public sealed partial class AppSettingsFile
         return new AppSettingsFile(path, environment, content, document, error);
     }
 
-    /// <summary>Sort order: base first, Development second, the rest alphabetically.</summary>
+    /// <summary>Loads an extra JSON configuration file that does not follow the appsettings naming.</summary>
+    public static AppSettingsFile LoadCustom(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        var content = TextFileContent.Read(path);
+        _ = JsonConfigDocument.TryParse(content.Text, out var document, out var error);
+        return new AppSettingsFile(path, environment: null, content, document, error, isCustom: true);
+    }
+
+    /// <summary>Sort order: base, Development, other environments alphabetically, then custom files.</summary>
     public static int CompareForDisplay(AppSettingsFile? left, AppSettingsFile? right)
     {
         if (ReferenceEquals(left, right))
@@ -92,9 +111,9 @@ public sealed partial class AppSettingsFile
         var rank = Rank(left).CompareTo(Rank(right));
         return rank != 0
             ? rank
-            : string.Compare(left.Environment, right.Environment, StringComparison.OrdinalIgnoreCase);
+            : string.Compare(left.DisplayName, right.DisplayName, StringComparison.OrdinalIgnoreCase);
 
-        static int Rank(AppSettingsFile file) => file.IsBase ? 0 : file.IsDevelopment ? 1 : 2;
+        static int Rank(AppSettingsFile file) => file.IsBase ? 0 : file.IsDevelopment ? 1 : file.IsCustom ? 3 : 2;
     }
 
     [GeneratedRegex(@"^appsettings(?:\.(.+))?\.json$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]

@@ -76,6 +76,35 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="6" Margin="24,0,0,4" VerticalAlignment="Center">
+            <TextBlock Text="EK DOSYALAR" Classes="section" VerticalAlignment="Center" />
+            <ItemsControl ItemsSource="{Binding CustomFiles}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="4" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:CustomFileChipViewModel">
+                  <Border Classes="chip outline" Classes.danger="{Binding HasError}" Padding="7,1,2,1"
+                          ToolTip.Tip="{Binding Path}">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                      <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                      <Button Classes="icon" Padding="2" MinHeight="16" MinWidth="16" ToolTip.Tip="Projeden çıkar"
+                              Command="{Binding RemoveCommand}" CommandParameter="{Binding Path}">
+                        <PathIcon Data="{StaticResource IconClose}" Width="9" Height="9" />
+                      </Button>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Classes="icon" Padding="3" MinHeight="20" MinWidth="20" Command="{Binding AddCustomFileCommand}"
+                    ToolTip.Tip="ocelot.json, serilog.json gibi ek bir JSON yapılandırma dosyası ekle">
+              <PathIcon Data="{StaticResource IconPlus}" Width="12" Height="12" />
+            </Button>
+          </StackPanel>
         </WrapPanel>
       </Grid>
     </Border>

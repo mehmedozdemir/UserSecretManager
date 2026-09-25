@@ -48,6 +48,33 @@ public sealed class WorkspaceState
 
     /// <summary>"System", "Light" or "Dark".</summary>
     public string Theme { get; set; } = "System";
+
+    /// <summary>Per-project preferences.</summary>
+    public List<ProjectPreferences> Projects { get; init; } = [];
+
+    /// <summary>Returns the preferences of <paramref name="projectPath"/>, creating them when missing.</summary>
+    public ProjectPreferences GetProject(string projectPath)
+    {
+        var existing = Projects.FirstOrDefault(p => string.Equals(p.Path, projectPath, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var created = new ProjectPreferences { Path = projectPath };
+        Projects.Add(created);
+        return created;
+    }
+}
+
+/// <summary>Preferences stored for one project. Never contains secret values.</summary>
+public sealed class ProjectPreferences
+{
+    /// <summary>Full path of the project file.</summary>
+    public required string Path { get; init; }
+
+    /// <summary>Extra JSON configuration files, relative to the project directory when possible.</summary>
+    public List<string> CustomConfigFiles { get; init; } = [];
 }
 
 /// <summary>Loads and saves <see cref="WorkspaceState"/>.</summary>

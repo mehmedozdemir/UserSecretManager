@@ -163,12 +163,16 @@ public sealed class ConfigColumnViewModel(AppSettingsFile file)
 
     public bool IsDevelopment { get; } = file.IsDevelopment;
 
-    public bool IsOtherEnvironment { get; } = !file.IsBase && !file.IsDevelopment;
+    public bool IsOtherEnvironment { get; } = !file.AppliesToAllEnvironments && !file.IsDevelopment;
+
+    public bool IsCustom { get; } = file.IsCustom;
 
     public bool HasError { get; } = file.Document is null;
 
     public string ToolTip { get; } = file.Document is null
         ? $"{file.FileName} okunamadı: {file.ParseError}"
+        : file.IsCustom
+            ? $"{file.Path} — ek dosya; tüm ortamlarda, varsayılan kaynaklardan sonra yüklendiği varsayılır"
         : file.IsBase
             ? $"{file.FileName} — tüm ortamlarda yüklenir"
             : file.IsDevelopment

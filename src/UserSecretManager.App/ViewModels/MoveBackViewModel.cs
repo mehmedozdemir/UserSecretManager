@@ -49,7 +49,7 @@ public sealed partial class MoveBackViewModel : DialogViewModelBase
 
     public bool CanApply => ChangeSet is { IsEmpty: false } && Error is null;
 
-    public bool ShowsNonDevelopmentWarning => TargetFile is { IsBase: false, IsDevelopment: false };
+    public bool ShowsNonDevelopmentWarning => TargetFile is { AppliesToAllEnvironments: false, IsDevelopment: false };
 
     partial void OnTargetFileChanged(AppSettingsFile? value)
     {

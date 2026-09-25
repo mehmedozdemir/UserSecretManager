@@ -83,12 +83,21 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
 
     public IReadOnlyList<EnvironmentChipViewModel> Environments =>
         (Configuration?.Files ?? [])
+        .Where(f => !f.IsCustom)
         .Select(f => new EnvironmentChipViewModel(f.DisplayName, f.IsDevelopment, f.Document is null, f.FileName))
         .Concat(Info.LaunchEnvironments
             .Where(e => Configuration?.Files.Any(f => string.Equals(f.Environment, e, StringComparison.OrdinalIgnoreCase)) != true)
             .Select(e => new EnvironmentChipViewModel(e, AppSettingsFile.IsDevelopmentName(e), false,
                 "launchSettings.json içinde tanımlı, appsettings dosyası yok")
             { IsLaunchOnly = true }))
+        .ToList();
+
+    public IReadOnlyList<CustomFileChipViewModel> CustomFiles =>
+        (Configuration?.Files ?? [])
+        .Where(f => f.IsCustom)
+        .Select(f => new CustomFileChipViewModel(f.FileName, f.Path, f.Document is null, RemoveCustomFileCommand))
+        .Concat((Configuration?.MissingCustomFiles ?? [])
+            .Select(p => new CustomFileChipViewModel(Path.GetFileName(p), p, true, RemoveCustomFileCommand)))
         .ToList();
 
     public bool HasNotices => Notices.Count > 0;
@@ -109,7 +118,7 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
             return;
         }
 
-        Configuration = ProjectConfiguration.Load(Info, Services.SecretsStore);
+        Configuration = ProjectConfiguration.Load(Info, Services.SecretsStore, _main.GetCustomConfigFiles(Info.ProjectPath));
         Config.Load(Configuration);
         Secrets.Load(Configuration);
         History.Load();
@@ -249,6 +258,11 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
             notices.Add(new NoticeViewModel(NoticeSeverity.Error, $"secrets.json okunamadı: {secretsError}"));
         }
 
+        foreach (var missing in Configuration?.MissingCustomFiles ?? [])
+        {
+            notices.Add(new NoticeViewModel(NoticeSeverity.Warning, $"Ek yapılandırma dosyası bulunamadı: {missing}"));
+        }
+
         foreach (var file in Configuration?.Files.Where(f => f.Document is null) ?? [])
         {
             notices.Add(new NoticeViewModel(NoticeSeverity.Warning, $"{file.FileName} geçerli JSON değil: {file.ParseError}"));
@@ -282,6 +296,47 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
             Reload();
         }
     }
+
+    [RelayCommand]
+    private async Task AddCustomFileAsync()
+    {
+        var picked = await Services.Dialogs.PickJsonFilesAsync(Info.Directory);
+        var accepted = picked.Where(p => !Info.ConfigFilePaths.Contains(p, StringComparer.OrdinalIgnoreCase)).ToList();
+        if (accepted.Count == 0)
+        {
+            if (picked.Count > 0)
+            {
+                _main.ShowStatus("Seçilen appsettings dosyaları zaten otomatik olarak yükleniyor.");
+            }
+
+            return;
+        }
+
+        if (!await EnsureNoUnsavedSecretsAsync())
+        {
+            return;
+        }
+
+        _main.SetCustomConfigFiles(Info.ProjectPath, CurrentCustomPaths().Concat(accepted));
+        Reload();
+        _main.ShowStatus($"{accepted.Count} ek yapılandırma dosyası eklendi.");
+    }
+
+    [RelayCommand]
+    private async Task RemoveCustomFileAsync(string? path)
+    {
+        if (path is null || !await EnsureNoUnsavedSecretsAsync())
+        {
+            return;
+        }
+
+        _main.SetCustomConfigFiles(Info.ProjectPath,
+            CurrentCustomPaths().Where(p => !string.Equals(p, path, StringComparison.OrdinalIgnoreCase)));
+        Reload();
+    }
+
+    private IEnumerable<string> CurrentCustomPaths() =>
+        _main.GetCustomConfigFiles(Info.ProjectPath).Select(p => Path.GetFullPath(p, Info.Directory));
 
     [RelayCommand]
     private Task CopySecretsIdAsync() => Services.Platform.CopyToClipboardAsync(Info.SecretsId.Id ?? string.Empty);
@@ -334,10 +389,14 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
         _watchers.Clear();
     }
 
+    private bool IsCustomFile(string path) =>
+        Configuration?.Files.Any(f => f.IsCustom && string.Equals(f.Path, path, StringComparison.OrdinalIgnoreCase)) == true;
+
     private void OnFileChanged(object sender, FileSystemEventArgs e)
     {
         var name = Path.GetFileName(e.FullPath);
         var relevant = name.Equals("secrets.json", StringComparison.OrdinalIgnoreCase) ||
+                       IsCustomFile(e.FullPath) ||
                        name.EndsWith("proj", StringComparison.OrdinalIgnoreCase) ||
                        AppSettingsFile.TryGetEnvironment(name, out _);
         if (!relevant || DateTime.UtcNow < _ignoreChangesUntil)
@@ -348,6 +407,8 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
         Dispatcher.UIThread.Post(() => IsOutdated = true);
     }
 }
+
+public sealed record CustomFileChipViewModel(string Name, string Path, bool HasError, IAsyncRelayCommand<string?> RemoveCommand);
 
 public sealed record EnvironmentChipViewModel(string Name, bool IsDevelopment, bool HasError, string ToolTip)
 {

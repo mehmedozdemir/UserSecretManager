@@ -66,6 +66,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string DataDirectory => _services.Location.RootDirectory;
 
+    /// <summary>Extra configuration files remembered for a project.</summary>
+    public IReadOnlyList<string> GetCustomConfigFiles(string projectPath) =>
+        _state.Projects.FirstOrDefault(p => string.Equals(p.Path, projectPath, StringComparison.OrdinalIgnoreCase))
+            ?.CustomConfigFiles ?? [];
+
+    /// <summary>Stores the extra configuration files of a project, relative to its directory when inside it.</summary>
+    public void SetCustomConfigFiles(string projectPath, IEnumerable<string> files)
+    {
+        var directory = Path.GetDirectoryName(projectPath) ?? string.Empty;
+        var preferences = _state.GetProject(projectPath);
+        var normalized = files
+            .Select(f => Path.GetFullPath(f, directory))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(f => IsInside(f, directory) ? Path.GetRelativePath(directory, f) : f)
+            .ToList();
+        preferences.CustomConfigFiles.Clear();
+        preferences.CustomConfigFiles.AddRange(normalized);
+        Save();
+    }
+
+    private static bool IsInside(string path, string directory) =>
+        path.StartsWith(Path.TrimEndingDirectorySeparator(directory) + Path.DirectorySeparatorChar,
+            StringComparison.OrdinalIgnoreCase);
+
     public void ShowStatus(string message, bool isError = false)
     {
         StatusMessage = message;

@@ -23,3 +23,8 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
 - İşlem geçmişi ve yedekten geri yükleme; yazma hatasında otomatik geri alma.
 - Dosya değişikliği izleme, açık/koyu/sistem teması, sürükle-bırak ile proje ekleme.
 - `USERSECRETMANAGER_DATA_DIR` ile uygulama veri klasörünü değiştirme (taşınabilir kullanım).
+
+### Added
+- Projeye ek JSON yapılandırma dosyaları (`ocelot.json`, `serilog.json` vb.) eklenebilir. Bu dosyalar matriste ayrı
+  sütun olarak görünür, tüm ortamlarda geçerli sayılır ve secret'a taşımaya katılır. Seçim proje bazında hatırlanır;
+  bulunamayan dosyalar uyarı olarak gösterilir.
