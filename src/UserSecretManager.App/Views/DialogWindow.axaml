@@ -36,13 +36,32 @@
     <DataTemplate DataType="vm:ProfileEditorViewModel">
       <v:ProfileEditorView />
     </DataTemplate>
-    <DataTemplate DataType="vm:ApplyProfileViewModel">
+    <DataTemplate DataType="vm:PasswordDialogViewModel">
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" Margin="24,20,24,16">
+        <TextBlock Grid.Row="0" Text="{Binding Message}" TextWrapping="Wrap" Margin="0,0,0,12" />
+        <TextBox Grid.Row="1" Text="{Binding Password}" PasswordChar="•" RevealPassword="{Binding Reveal}"
+                 Watermark="Parola" />
+        <TextBox Grid.Row="2" Text="{Binding Confirmation}" PasswordChar="•" RevealPassword="{Binding Reveal}"
+                 Watermark="Parola (tekrar)" Margin="0,8,0,0" IsVisible="{Binding RequireConfirmation}" />
+        <CheckBox Grid.Row="3" IsChecked="{Binding Reveal}" Content="Parolayı göster" Margin="0,6,0,0" />
+        <TextBlock Grid.Row="4" Text="{Binding ErrorText}" IsVisible="{Binding HasError}" Classes="danger" Margin="0,4,0,0" />
+        <StackPanel Grid.Row="6" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+          <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
+          <Button Classes="primary" Content="Tamam" Command="{Binding ConfirmCommand}" IsDefault="True" />
+        </StackPanel>
+      </Grid>
+    </DataTemplate>
+    <DataTemplate DataType="vm:ApplySecretsViewModel">
       <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20,16,20,14">
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="16" Margin="0,0,0,10">
-          <RadioButton GroupName="applyMode" IsChecked="{Binding Replace}" Content="Değiştir (secrets.json = profil)" />
-          <RadioButton GroupName="applyMode" IsChecked="{Binding !Replace}" Content="Birleştir (profil değerlerini üzerine yaz)" />
+          <RadioButton GroupName="applyMode" IsChecked="{Binding Replace}" Content="Değiştir (secrets.json = bu değerler)" />
+          <RadioButton GroupName="applyMode" IsChecked="{Binding !Replace}" Content="Birleştir (mevcut secret'ların üzerine yaz)" />
         </StackPanel>
         <StackPanel Grid.Row="1" Spacing="4" Margin="0,0,0,10">
+          <TextBlock Text="{Binding Details}" IsVisible="{Binding HasDetails}" Classes="caption" TextWrapping="Wrap" />
+          <Border Classes="notice warning" IsVisible="{Binding HasWarning}">
+            <TextBlock Text="{Binding Warning}" TextWrapping="Wrap" />
+          </Border>
           <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontWeight="Medium" />
           <Border Classes="notice warning" IsVisible="{Binding ReplaceDeletesSecrets}">
             <TextBlock Text="{Binding DeleteWarning}" TextWrapping="Wrap" />

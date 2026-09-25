@@ -11,6 +11,12 @@ public interface IDialogService
     /// <summary>Lets the user pick JSON files, starting in <paramref name="startDirectory"/>.</summary>
     Task<IReadOnlyList<string>> PickJsonFilesAsync(string startDirectory);
 
+    /// <summary>Lets the user choose where to save a file. Returns <c>null</c> when cancelled.</summary>
+    Task<string?> PickSaveFileAsync(string title, string suggestedFileName, string fileTypeName, string extension);
+
+    /// <summary>Lets the user pick one file. Returns <c>null</c> when cancelled.</summary>
+    Task<string?> PickOpenFileAsync(string title, string fileTypeName, string extension);
+
     /// <summary>Asks a yes/no question.</summary>
     Task<bool> ConfirmAsync(string title, string message, string confirmText, bool isDestructive = false);
 

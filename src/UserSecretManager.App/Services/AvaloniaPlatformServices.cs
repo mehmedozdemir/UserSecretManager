@@ -51,6 +51,40 @@ public sealed class AvaloniaPlatformServices(Func<Window?> owner) : IDialogServi
         return files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
     }
 
+    public async Task<string?> PickSaveFileAsync(string title, string suggestedFileName, string fileTypeName, string extension)
+    {
+        if (owner() is not { } window)
+        {
+            return null;
+        }
+
+        var file = await window.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = title,
+            SuggestedFileName = suggestedFileName,
+            DefaultExtension = extension.TrimStart('.'),
+            ShowOverwritePrompt = true,
+            FileTypeChoices = [new FilePickerFileType(fileTypeName) { Patterns = [$"*{extension}"] }],
+        });
+        return file?.TryGetLocalPath();
+    }
+
+    public async Task<string?> PickOpenFileAsync(string title, string fileTypeName, string extension)
+    {
+        if (owner() is not { } window)
+        {
+            return null;
+        }
+
+        var files = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = false,
+            FileTypeFilter = [new FilePickerFileType(fileTypeName) { Patterns = [$"*{extension}"] }],
+        });
+        return files.Count > 0 ? files[0].TryGetLocalPath() : null;
+    }
+
     public Task<bool> ConfirmAsync(string title, string message, string confirmText, bool isDestructive = false) =>
         ShowDialogAsync(new MessageDialogViewModel(title, message, confirmText, "Vazgeç", isDestructive));
 

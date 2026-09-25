@@ -34,6 +34,10 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
   kullanıcının okuyabildiği anahtarla AES-256-GCM). Profil şu anki secret'lardan veya bir ortamın değerlerinden
   oluşturulur; diff önizlemesiyle "değiştir" ya da "birleştir" modunda `secrets.json`'a uygulanır ve geçmişe yedeklenir.
   secrets.json ile birebir aynı olan profil "Etkin" olarak işaretlenir.
+- Parola korumalı dışa/içe aktarma (`.usmsecrets`, PBKDF2-SHA256 + AES-256-GCM). İçe aktarma diff önizlemesiyle
+  "değiştir" veya "birleştir" modunda uygulanır; farklı bir UserSecretsId'den gelen dosya için uyarı verilir.
+- `secrets.template.json`: değerleri boş, repoya eklenebilen anahtar listesi. Secrets sekmesinden oluşturulur ve
+  şablondaki eksik anahtarlar tek tıkla forma eklenir.
 
 ### Fixed
 - Seçilebilir metinlerde (anahtar adları, yollar) sabit genişlikli font ve ikincil metin stilleri uygulanmıyordu.

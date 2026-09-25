@@ -98,7 +98,8 @@ public sealed partial class ProfilesTabViewModel(ProjectViewModel project) : Obs
             return;
         }
 
-        var dialog = new ApplyProfileViewModel(row.Name, values, _configuration!, project.Services.ChangeSets);
+        var dialog = new ApplySecretsViewModel($"'{row.Name}' profilini uygula", $"'{row.Name}' profili", values,
+            _configuration!, project.Services.ChangeSets);
         if (await project.Services.Dialogs.ShowDialogAsync(dialog) && dialog.ChangeSet is { } changeSet)
         {
             await project.ApplyChangesAsync(changeSet, $"'{row.Name}' profili uygulandı.");

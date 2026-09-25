@@ -1,8 +1,12 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using UserSecretManager.Core.Configuration;
+using UserSecretManager.Core.IO;
 using UserSecretManager.Core.Migration;
+using UserSecretManager.Core.Transfer;
 
 namespace UserSecretManager.App.ViewModels;
 
@@ -12,6 +16,7 @@ public sealed partial class SecretsTabViewModel : ObservableObject
     private readonly ProjectViewModel _project;
     private readonly List<SecretRowViewModel> _allRows = [];
     private HashSet<string> _configKeys = new(ConfigKey.Comparer);
+    private ProjectConfiguration? _configuration;
 
     [ObservableProperty]
     private string _filter = string.Empty;
@@ -72,8 +77,13 @@ public sealed partial class SecretsTabViewModel : ObservableObject
         }
     }
 
+    public bool HasTemplate => _configuration is not null &&
+                               File.Exists(SecretsTemplate.PathFor(_configuration.Project.Directory));
+
     public void Load(ProjectConfiguration configuration)
     {
+        _configuration = configuration;
+        OnPropertyChanged(nameof(HasTemplate));
         _configKeys = configuration.ValidFiles
             .SelectMany(f => f.Document!.Values.Select(v => v.Key))
             .ToHashSet(ConfigKey.Comparer);
@@ -196,6 +206,170 @@ public sealed partial class SecretsTabViewModel : ObservableObject
 
     [RelayCommand]
     private Task OpenFolderAsync() => _project.Services.Platform.OpenFolderAsync(FilePath);
+
+    [RelayCommand]
+    private async Task ExportAsync()
+    {
+        var dialogs = _project.Services.Dialogs;
+        if (IsDirty)
+        {
+            await dialogs.ShowMessageAsync("Dışa aktar", "Önce Secrets sekmesindeki değişiklikleri kaydedin veya atın.");
+            return;
+        }
+
+        if (_configuration?.Secrets is not { Count: > 0 } secrets)
+        {
+            await dialogs.ShowMessageAsync("Dışa aktar", "Dışa aktarılacak secret yok.");
+            return;
+        }
+
+        var password = new PasswordDialogViewModel("Dışa aktarım parolası",
+            $"{secrets.Count} secret bu parolayla şifrelenecek. Dosyayı alan kişiye parolayı ayrı bir kanaldan iletin.",
+            requireConfirmation: true, SecretsArchive.ValidatePassword);
+        if (!await dialogs.ShowDialogAsync(password))
+        {
+            return;
+        }
+
+        var path = await dialogs.PickSaveFileAsync("Secret'ları dışa aktar",
+            _configuration.Project.Name + SecretsArchive.FileExtension, "User Secret Manager dışa aktarımı",
+            SecretsArchive.FileExtension);
+        if (path is null)
+        {
+            return;
+        }
+
+        var content = new SecretsArchiveContent(_configuration.Project.Name, _configuration.Project.SecretsId.Id,
+            DateTimeOffset.Now, secrets.ToList());
+        try
+        {
+            var data = await Task.Run(() => SecretsArchive.Export(content, password.Password));
+            AtomicFile.WriteAllBytes(path, data);
+            _project.ShowStatus($"{secrets.Count} secret dışa aktarıldı: {Path.GetFileName(path)}");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            await dialogs.ShowMessageAsync("Dışa aktarılamadı", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportAsync()
+    {
+        var dialogs = _project.Services.Dialogs;
+        if (LoadError is not null || _configuration?.Secrets is null || !await _project.EnsureNoUnsavedSecretsAsync())
+        {
+            return;
+        }
+
+        var path = await dialogs.PickOpenFileAsync("Dışa aktarım dosyasını seçin", "User Secret Manager dışa aktarımı",
+            SecretsArchive.FileExtension);
+        if (path is null)
+        {
+            return;
+        }
+
+        var password = new PasswordDialogViewModel("Parola", $"{Path.GetFileName(path)} dosyasının parolasını girin.",
+            requireConfirmation: false, p => p.Length == 0 ? "Parola gerekli" : null);
+        if (!await dialogs.ShowDialogAsync(password))
+        {
+            return;
+        }
+
+        SecretsArchiveContent content;
+        try
+        {
+            var data = await File.ReadAllBytesAsync(path);
+            content = await Task.Run(() => SecretsArchive.Import(data, password.Password));
+        }
+        catch (Exception ex) when (ex is SecretsArchiveException or IOException or UnauthorizedAccessException)
+        {
+            await dialogs.ShowMessageAsync("İçe aktarılamadı", ex.Message);
+            return;
+        }
+
+        var details = string.Create(CultureInfo.InvariantCulture,
+            $"Kaynak: {content.ProjectName ?? "bilinmiyor"} · {content.ExportedAt.ToLocalTime():dd.MM.yyyy HH:mm} · {content.Secrets.Count} secret");
+        var ownId = _configuration.Project.SecretsId.Id;
+        var warning = content.UserSecretsId is { } id && ownId is not null && !string.Equals(id, ownId, StringComparison.OrdinalIgnoreCase)
+            ? $"Dosya farklı bir UserSecretsId'den ({id}) dışa aktarılmış. Doğru projeye aktardığınızdan emin olun."
+            : null;
+        var dialog = new ApplySecretsViewModel("Secret'ları içe aktar", "içe aktarılan dosya", content.Secrets,
+            _configuration, _project.Services.ChangeSets, details, warning);
+        if (await dialogs.ShowDialogAsync(dialog) && dialog.ChangeSet is { IsEmpty: false } changeSet)
+        {
+            await _project.ApplyChangesAsync(changeSet, $"{content.Secrets.Count} secret içe aktarıldı.");
+        }
+    }
+
+    [RelayCommand]
+    private async Task WriteTemplateAsync()
+    {
+        var dialogs = _project.Services.Dialogs;
+        if (_configuration is null || !await _project.EnsureNoUnsavedSecretsAsync())
+        {
+            return;
+        }
+
+        ChangeSet changeSet;
+        try
+        {
+            changeSet = ChangeSetFactory.WriteTemplate(_configuration);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException)
+        {
+            await dialogs.ShowMessageAsync("Şablon oluşturulamadı", ex.Message);
+            return;
+        }
+
+        if (changeSet.IsEmpty)
+        {
+            _project.ShowStatus($"{SecretsTemplate.FileName} zaten güncel.");
+            return;
+        }
+
+        var confirm = new ConfirmChangesViewModel($"{SecretsTemplate.FileName} oluştur",
+            "Şablon yalnızca anahtar adlarını içerir, değerler boştur. Repoya eklenerek ekibe hangi secret'ların gerektiğini gösterir.",
+            changeSet, "Oluştur");
+        if (await dialogs.ShowDialogAsync(confirm))
+        {
+            await _project.ApplyChangesAsync(changeSet, $"{SecretsTemplate.FileName} güncellendi.");
+        }
+    }
+
+    [RelayCommand]
+    private async Task FillFromTemplateAsync()
+    {
+        if (_configuration is null || LoadError is not null)
+        {
+            return;
+        }
+
+        IReadOnlyList<string> keys;
+        try
+        {
+            keys = SecretsTemplate.ReadKeys(TextFileContent.Read(SecretsTemplate.PathFor(_configuration.Project.Directory)).Text);
+        }
+        catch (Exception ex) when (ex is JsonException or IOException)
+        {
+            await _project.Services.Dialogs.ShowMessageAsync("Şablon okunamadı", ex.Message);
+            return;
+        }
+
+        var existing = _allRows.Where(r => !r.IsDeleted).Select(r => r.Key.Trim()).ToHashSet(ConfigKey.Comparer);
+        var missing = keys.Where(k => !existing.Contains(k)).ToList();
+        foreach (var key in missing)
+        {
+            _allRows.Add(new SecretRowViewModel(this, null, null) { Key = key, IsRevealed = true });
+        }
+
+        Filter = string.Empty;
+        ApplyFilter();
+        OnStateChanged();
+        _project.ShowStatus(missing.Count == 0
+            ? "Şablondaki tüm anahtarlar zaten tanımlı."
+            : $"Şablondan {missing.Count} eksik anahtar eklendi; değerlerini girip kaydedin.");
+    }
 
     private void ApplyFilter()
     {

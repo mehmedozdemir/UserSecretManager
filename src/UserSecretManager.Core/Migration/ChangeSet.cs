@@ -13,6 +13,9 @@ public enum FileChangeKind
 
     /// <summary>The project file (adding <c>UserSecretsId</c>).</summary>
     ProjectFile,
+
+    /// <summary><c>secrets.template.json</c> next to the project.</summary>
+    Template,
 }
 
 /// <summary>A pending change to one file.</summary>

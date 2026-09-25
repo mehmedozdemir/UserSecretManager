@@ -117,8 +117,8 @@ public sealed class ProfileValueRowViewModel(string key, string value)
     public string MaskedValue { get; } = ValueMask.Mask(value);
 }
 
-/// <summary>Preview and confirm applying a profile to secrets.json.</summary>
-public sealed partial class ApplyProfileViewModel : DialogViewModelBase
+/// <summary>Preview and confirm writing a set of secret values (a profile or an import) to secrets.json.</summary>
+public sealed partial class ApplySecretsViewModel : DialogViewModelBase
 {
     private readonly IReadOnlyList<KeyValuePair<string, string>> _values;
     private readonly ProjectConfiguration _configuration;
@@ -130,36 +130,47 @@ public sealed partial class ApplyProfileViewModel : DialogViewModelBase
     [ObservableProperty]
     private string? _error;
 
-    public ApplyProfileViewModel(string name, IReadOnlyList<KeyValuePair<string, string>> values,
-        ProjectConfiguration configuration, ChangeSetFactory factory)
+    public ApplySecretsViewModel(string title, string sourceName, IReadOnlyList<KeyValuePair<string, string>> values,
+        ProjectConfiguration configuration, ChangeSetFactory factory, string? details = null, string? warning = null)
     {
-        ProfileName = name;
+        Title = title;
+        SourceName = sourceName;
+        Details = details;
+        Warning = warning;
         _values = values;
         _configuration = configuration;
         _factory = factory;
 
-        // Replacing with a profile that lacks some current keys would delete those secrets, so merge by default then.
+        // Replacing with values that lack some current keys would delete those secrets, so merge by default then.
         MissingKeyCount = configuration.Secrets!.Keys
             .Count(k => !values.Any(v => Core.Configuration.ConfigKey.Comparer.Equals(v.Key, k)));
         _replace = MissingKeyCount == 0;
         Refresh();
     }
 
-    public override string Title => $"'{ProfileName}' profilini uygula";
+    public override string Title { get; }
+
+    public string SourceName { get; }
+
+    public string? Details { get; }
+
+    public bool HasDetails => Details is not null;
+
+    public string? Warning { get; }
+
+    public bool HasWarning => Warning is not null;
 
     public int MissingKeyCount { get; }
 
     public bool ReplaceDeletesSecrets => Replace && MissingKeyCount > 0;
 
-    public string DeleteWarning => $"Profilde olmayan {MissingKeyCount} secret silinecek.";
+    public string DeleteWarning => $"{SourceName} içinde olmayan {MissingKeyCount} secret silinecek.";
 
     public override double DialogWidth => 900;
 
     public override double DialogHeight => 620;
 
     public override bool CanResize => true;
-
-    public string ProfileName { get; }
 
     public ChangePreviewViewModel Preview { get; } = new();
 
@@ -168,10 +179,10 @@ public sealed partial class ApplyProfileViewModel : DialogViewModelBase
     public bool CanApply => ChangeSet is { IsEmpty: false };
 
     public string Summary => ChangeSet is { IsEmpty: true }
-        ? "secrets.json zaten bu profille aynı; değişiklik yok."
+        ? "secrets.json zaten bu değerlerle aynı; değişiklik yok."
         : Replace
-            ? "secrets.json tamamen bu profille değiştirilecek; profilde olmayan secret'lar silinir."
-            : "Profildeki değerler mevcut secret'ların üzerine yazılacak; diğer secret'lar korunur.";
+            ? $"secrets.json tamamen {SourceName} ile değiştirilecek; içinde olmayan secret'lar silinir."
+            : $"{SourceName} içindeki değerler mevcut secret'ların üzerine yazılacak; diğer secret'lar korunur.";
 
     partial void OnReplaceChanged(bool value) => Refresh();
 
@@ -184,7 +195,7 @@ public sealed partial class ApplyProfileViewModel : DialogViewModelBase
         {
             var mode = Replace ? ProfileApplyMode.Replace : ProfileApplyMode.Merge;
             var target = ProfileValues.Apply(_configuration.Secrets!, _values, mode);
-            ChangeSet = _factory.ReplaceSecrets(_configuration, target, $"'{ProfileName}' profili uygulandı ({(Replace ? "değiştir" : "birleştir")})");
+            ChangeSet = _factory.ReplaceSecrets(_configuration, target, $"{SourceName} uygulandı ({(Replace ? "değiştir" : "birleştir")})");
             Error = null;
         }
         catch (InvalidOperationException ex)
@@ -230,6 +241,53 @@ public sealed partial class TextInputViewModel : DialogViewModelBase
     public bool HasError => ErrorText is not null;
 
     private bool CanConfirm() => ErrorText is null;
+
+    [RelayCommand(CanExecute = nameof(CanConfirm))]
+    private void Confirm() => Close(true);
+}
+
+/// <summary>Asks for a password, optionally twice.</summary>
+public sealed partial class PasswordDialogViewModel : DialogViewModelBase
+{
+    private readonly Func<string, string?> _validate;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ErrorText), nameof(HasError))]
+    [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
+    private string _password = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ErrorText), nameof(HasError))]
+    [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
+    private string _confirmation = string.Empty;
+
+    [ObservableProperty]
+    private bool _reveal;
+
+    public PasswordDialogViewModel(string title, string message, bool requireConfirmation, Func<string, string?> validate)
+    {
+        Title = title;
+        Message = message;
+        RequireConfirmation = requireConfirmation;
+        _validate = validate;
+    }
+
+    public override string Title { get; }
+
+    public override double DialogHeight => RequireConfirmation ? 330 : 270;
+
+    public string Message { get; }
+
+    public bool RequireConfirmation { get; }
+
+    public string? ErrorText => Password.Length == 0 ? null
+        : _validate(Password) ?? (RequireConfirmation && Confirmation.Length > 0 && Confirmation != Password
+            ? "Parolalar eşleşmiyor"
+            : null);
+
+    public bool HasError => ErrorText is not null;
+
+    private bool CanConfirm() => _validate(Password) is null && (!RequireConfirmation || Confirmation == Password);
 
     [RelayCommand(CanExecute = nameof(CanConfirm))]
     private void Confirm() => Close(true);

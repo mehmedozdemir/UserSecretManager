@@ -121,6 +121,25 @@ public sealed class ChangeSetFactory
         return new ChangeSet(configuration.Project.ProjectPath, configuration.Project.Name, description, changes);
     }
 
+    /// <summary>Changes that create or update <c>secrets.template.json</c> with the current secret keys.</summary>
+    public static ChangeSet WriteTemplate(ProjectConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        if (configuration.Secrets is not { Count: > 0 } secrets)
+        {
+            throw new InvalidOperationException("Şablon için en az bir secret gerekir.");
+        }
+
+        var path = Transfer.SecretsTemplate.PathFor(configuration.Project.Directory);
+        var existing = File.Exists(path) ? TextFileContent.Read(path) : null;
+        var text = Transfer.SecretsTemplate.Create(secrets.Keys);
+        var content = existing?.WithText(text) ?? new TextFileContent(text, HasBom: false);
+        var changes = new List<FileChange>();
+        AddIfChanged(changes, new FileChange(path, FileChangeKind.Template, Transfer.SecretsTemplate.FileName, existing?.Text, content));
+        return new ChangeSet(configuration.Project.ProjectPath, configuration.Project.Name,
+            $"{Transfer.SecretsTemplate.FileName} güncellendi ({secrets.Count} anahtar)", changes);
+    }
+
     private static void EnsureSecretsWritable(ProjectConfiguration configuration)
     {
         if (configuration.Secrets is null)
