@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Validates that the commit subject follows Conventional Commits.
+# Enable with: git config core.hooksPath .githooks
+
+message_file="$1"
+subject="$(grep -v '^#' "$message_file" | sed '/^[[:space:]]*$/d' | head -n 1)"
+
+# Git-generated subjects are allowed as-is.
+if [[ "$subject" =~ ^(Merge|Revert\ \"|fixup!|squash!) ]]; then
+  exit 0
+fi
+
+pattern='^(feat|fix|perf|refactor|style|test|docs|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: [^A-Z].*[^.]$'
+if ! [[ "$subject" =~ $pattern ]]; then
+  echo "✖ Commit mesajı Conventional Commits biçiminde değil:" >&2
+  echo "    $subject" >&2
+  echo "  Beklenen: <type>(<scope>): <küçük harfle açıklama, sonda nokta yok>" >&2
+  echo "  Örnek:    feat(core): add effective configuration view" >&2
+  exit 1
+fi
+
+if (( ${#subject} > 72 )); then
+  echo "✖ Commit başlığı ${#subject} karakter; en fazla 72 olmalı." >&2
+  exit 1
+fi

@@ -1,0 +1,13 @@
+
+# <type>(<scope>): <kısa açıklama>   (≤72 karakter, emir kipi, sonda nokta yok)
+#
+# type : feat | fix | perf | refactor | style | test | docs | build | ci | chore | revert
+# scope: core | app | tests | docs | ci | release | deps
+#
+# Gövde: NE değişti ve NEDEN (nasıl değil). 100 karakterde satır kaydırın.
+#
+# Footer:
+#   Closes #123
+#   BREAKING CHANGE: <ne kırıldı ve nasıl geçilir>
+#
+# feat/fix commit'leri CHANGELOG.md [Unreleased] bölümünü de güncellemelidir.

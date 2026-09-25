@@ -1,0 +1,44 @@
+name: PR checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  conventions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: PR title follows Conventional Commits
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|perf|refactor|style|test|docs|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: [^A-Z].*[^.]$'
+          if ! [[ "$TITLE" =~ $pattern ]] || (( ${#TITLE} > 72 )); then
+            echo "::error::PR başlığı Conventional Commits biçiminde olmalı (≤72 karakter): '$TITLE'"
+            exit 1
+          fi
+
+      - name: Branch name follows convention
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          if ! [[ "$BRANCH" =~ ^(feature|fix|hotfix|release|docs|refactor|chore)/[a-z0-9.-]+$ ]] || (( ${#BRANCH} > 60 )); then
+            echo "::error::Dal adı kurala uymuyor: '$BRANCH' (ör. feature/add-export, fix/42-bom-lost)"
+            exit 1
+          fi
+
+      - name: CHANGELOG updated for feat/fix
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [[ "$TITLE" =~ ^(feat|fix)(\(|!|:) ]]; then
+            if ! git diff --name-only "$BASE" HEAD | grep -qx 'CHANGELOG.md'; then
+              echo "::error::feat/fix PR'ları CHANGELOG.md [Unreleased] bölümünü güncellemelidir."
+              exit 1
+            fi
+          fi
