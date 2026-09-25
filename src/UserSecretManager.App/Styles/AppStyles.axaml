@@ -22,14 +22,14 @@
     <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
     <Setter Property="LetterSpacing" Value="0.6" />
   </Style>
-  <Style Selector="TextBlock.muted">
+  <Style Selector=":is(TextBlock).muted">
     <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
   </Style>
-  <Style Selector="TextBlock.caption">
+  <Style Selector=":is(TextBlock).caption">
     <Setter Property="FontSize" Value="12" />
     <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
   </Style>
-  <Style Selector="TextBlock.mono">
+  <Style Selector=":is(TextBlock).mono">
     <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
     <Setter Property="FontSize" Value="12.5" />
   </Style>
@@ -37,7 +37,7 @@
     <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
     <Setter Property="FontSize" Value="12.5" />
   </Style>
-  <Style Selector="TextBlock.danger">
+  <Style Selector=":is(TextBlock).danger">
     <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
   </Style>
 

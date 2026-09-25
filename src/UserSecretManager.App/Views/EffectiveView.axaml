@@ -1,0 +1,131 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UserSecretManager.App.ViewModels"
+             x:Class="UserSecretManager.App.Views.EffectiveView"
+             x:DataType="vm:EffectiveTabViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="ListBox.effective > ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border Classes="card" Margin="0,8,0,12" ClipToBounds="True">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+
+      <!-- Simulation options -->
+      <Border Grid.Row="0" Classes="toolbar" CornerRadius="6,6,0,0">
+        <WrapPanel Orientation="Horizontal">
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,20,0" VerticalAlignment="Center">
+            <TextBlock Text="Ortam" VerticalAlignment="Center" />
+            <AutoCompleteBox ItemsSource="{Binding Environments}" Text="{Binding Environment}" MinWidth="170"
+                             FilterMode="StartsWith" MinimumPrefixLength="0"
+                             ToolTip.Tip="Listeden seçin veya bir ortam adı yazın" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,20,0" VerticalAlignment="Center">
+            <TextBlock Text="Launch profili" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" MinWidth="200">
+              <ComboBox.ItemTemplate>
+                <DataTemplate DataType="vm:LaunchProfileOption">
+                  <TextBlock Text="{Binding Label}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </StackPanel>
+          <CheckBox IsChecked="{Binding IncludeUserSecrets}" VerticalAlignment="Center"
+                    ToolTip.Tip="Varsayılan host user secrets'ı yalnızca Development ortamında yükler">
+            <TextBlock Text="User secrets yüklenir" />
+          </CheckBox>
+        </WrapPanel>
+      </Border>
+
+      <!-- Filter bar -->
+      <Border Grid.Row="1" Padding="12,8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+        <Grid ColumnDefinitions="240,*">
+          <TextBox Grid.Column="0" Watermark="Anahtar ara…" Text="{Binding Filter}" VerticalAlignment="Center">
+            <TextBox.InnerLeftContent>
+              <PathIcon Data="{StaticResource IconSearch}" Margin="8,0,0,0" Opacity="0.6" />
+            </TextBox.InnerLeftContent>
+          </TextBox>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0" Spacing="4">
+            <ToggleButton Classes="subtle" IsChecked="{Binding ShowEmptyOnly}">
+              <TextBlock Text="Yalnızca boş değerler" />
+            </ToggleButton>
+            <ToggleButton Classes="subtle" IsChecked="{Binding RevealValues}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource IconEye}" />
+                <TextBlock Text="Göster" />
+              </StackPanel>
+            </ToggleButton>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- Header -->
+      <Border Grid.Row="2" Background="{DynamicResource Surface0Brush}" BorderBrush="{DynamicResource BorderBrush}"
+              BorderThickness="0,0,0,1" MinHeight="32" Padding="14,0">
+        <Grid ColumnDefinitions="2*,3*,220,120">
+          <TextBlock Grid.Column="0" Text="ANAHTAR" Classes="section" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="ETKİN DEĞER" Classes="section" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="2" Text="KAYNAK" Classes="section" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="3" Text="EZME" Classes="section" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+
+      <!-- Rows -->
+      <Panel Grid.Row="3">
+        <ListBox Classes="plain effective" ItemsSource="{Binding Rows}">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:EffectiveRowViewModel">
+              <Grid ColumnDefinitions="2*,3*,220,120" Margin="14,0" Background="Transparent"
+                    ToolTip.Tip="{Binding LayersToolTip}">
+                <SelectableTextBlock Grid.Column="0" Text="{Binding Key}" Classes="mono" VerticalAlignment="Center"
+                                     TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <Border Classes="chip warning" IsVisible="{Binding IsEmpty}">
+                    <TextBlock Text="boş" />
+                  </Border>
+                  <TextBlock Text="{Binding DisplayValue}" Classes="mono" TextTrimming="CharacterEllipsis"
+                             Classes.muted="{Binding IsEmpty}" VerticalAlignment="Center" />
+                </StackPanel>
+                <Panel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left">
+                  <Border Classes="chip success" IsVisible="{Binding IsFromSecrets}">
+                    <TextBlock Text="{Binding Source}" />
+                  </Border>
+                  <Border Classes="chip accent" IsVisible="{Binding IsFromLaunchProfile}">
+                    <TextBlock Text="{Binding Source}" />
+                  </Border>
+                  <Border Classes="chip outline" IsVisible="{Binding IsFromCustomFile}">
+                    <TextBlock Text="{Binding Source}" />
+                  </Border>
+                  <Border Classes="chip" IsVisible="{Binding IsFromFile}">
+                    <TextBlock Text="{Binding Source}" />
+                  </Border>
+                </Panel>
+                <TextBlock Grid.Column="3" Text="{Binding OverrideText}" Classes="caption" VerticalAlignment="Center" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock IsVisible="{Binding IsEmpty}" Text="Gösterilecek anahtar yok." Classes="muted" Margin="24" />
+      </Panel>
+
+      <!-- Footer -->
+      <Border Grid.Row="4" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,10">
+        <StackPanel Spacing="8">
+          <Border Classes="notice warning" IsVisible="{Binding HasEmpty}">
+            <TextBlock Text="{Binding EmptyWarning}" TextWrapping="Wrap" />
+          </Border>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{Binding Summary}" FontWeight="Medium" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Classes="caption" VerticalAlignment="Center"
+                       Text="Sıra: appsettings.json → appsettings.{Ortam}.json → user secrets → launch profili → ek dosyalar" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

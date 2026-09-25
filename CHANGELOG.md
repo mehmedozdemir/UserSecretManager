@@ -28,3 +28,8 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
 - Projeye ek JSON yapılandırma dosyaları (`ocelot.json`, `serilog.json` vb.) eklenebilir. Bu dosyalar matriste ayrı
   sütun olarak görünür, tüm ortamlarda geçerli sayılır ve secret'a taşımaya katılır. Seçim proje bazında hatırlanır;
   bulunamayan dosyalar uyarı olarak gösterilir.
+- "Etkin yapılandırma" sekmesi: seçilen ortam ve launch profili için uygulamanın göreceği son değerler, her değerin
+  kaynağı ve ezdiği katmanlar. Development dışı ortamlarda boş kalan (ör. secret'a taşınmış) değerler ayrıca uyarılır.
+
+### Fixed
+- Seçilebilir metinlerde (anahtar adları, yollar) sabit genişlikli font ve ikincil metin stilleri uygulanmıyordu.

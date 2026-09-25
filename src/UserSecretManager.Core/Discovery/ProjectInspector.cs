@@ -37,7 +37,7 @@ public static partial class ProjectInspector
             SecretsId = ResolveUserSecretsId(fullPath, project),
             HasUserSecretsSupport = HasSupport(project, sdk),
             ConfigFilePaths = FindConfigFiles(directory),
-            LaunchEnvironments = ReadLaunchEnvironments(directory),
+            LaunchProfiles = LaunchSettingsReader.Read(directory),
             GitRoot = FindGitRoot(directory),
         };
     }
@@ -166,34 +166,6 @@ public static partial class ProjectInspector
     /// <summary>A user secrets id becomes a directory name, so it must be a valid file name.</summary>
     internal static bool IsValidId(string id) =>
         id.Length > 0 && id.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 && id.Trim() == id && id is not "." and not "..";
-
-    private static List<string> ReadLaunchEnvironments(string directory)
-    {
-        var path = Path.Combine(directory, "Properties", "launchSettings.json");
-        if (!File.Exists(path))
-        {
-            return [];
-        }
-
-        try
-        {
-            var document = JsonConfigDocument.Parse(File.ReadAllText(path));
-            return document.Values
-                .Where(v => v.Key.StartsWith("profiles:", StringComparison.OrdinalIgnoreCase))
-                .Where(v => ConfigKey.LastSegment(v.Key) is var name &&
-                            (name.Equals("ASPNETCORE_ENVIRONMENT", StringComparison.OrdinalIgnoreCase) ||
-                             name.Equals("DOTNET_ENVIRONMENT", StringComparison.OrdinalIgnoreCase)))
-                .Select(v => v.Value)
-                .OfType<string>()
-                .Where(v => v.Length > 0)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-        catch (JsonException)
-        {
-            return [];
-        }
-    }
 
     private static string? FindGitRoot(string directory)
     {

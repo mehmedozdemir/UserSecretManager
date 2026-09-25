@@ -60,8 +60,15 @@ public sealed record ProjectInfo
     /// <summary>Full paths of <c>appsettings*.json</c> files next to the project file.</summary>
     public IReadOnlyList<string> ConfigFilePaths { get; init; } = [];
 
-    /// <summary>Environment names used by <c>launchSettings.json</c> profiles.</summary>
-    public IReadOnlyList<string> LaunchEnvironments { get; init; } = [];
+    /// <summary>Profiles from <c>Properties/launchSettings.json</c>.</summary>
+    public IReadOnlyList<LaunchProfile> LaunchProfiles { get; init; } = [];
+
+    /// <summary>Distinct environment names used by the launch profiles.</summary>
+    public IReadOnlyList<string> LaunchEnvironments => LaunchProfiles
+        .Select(p => p.Environment)
+        .OfType<string>()
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToList();
 
     /// <summary>Root of the git repository that contains the project, if any.</summary>
     public string? GitRoot { get; init; }

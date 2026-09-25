@@ -47,6 +47,7 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
         _main = main;
         Config = new ConfigTabViewModel(this);
         Secrets = new SecretsTabViewModel(this);
+        Effective = new EffectiveTabViewModel();
         History = new HistoryTabViewModel(this);
     }
 
@@ -55,6 +56,8 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
     public ConfigTabViewModel Config { get; }
 
     public SecretsTabViewModel Secrets { get; }
+
+    public EffectiveTabViewModel Effective { get; }
 
     public HistoryTabViewModel History { get; }
 
@@ -121,6 +124,7 @@ public sealed partial class ProjectViewModel : ObservableObject, IDisposable
         Configuration = ProjectConfiguration.Load(Info, Services.SecretsStore, _main.GetCustomConfigFiles(Info.ProjectPath));
         Config.Load(Configuration);
         Secrets.Load(Configuration);
+        Effective.Load(Configuration);
         History.Load();
         Notices = BuildNotices();
         IsOutdated = false;

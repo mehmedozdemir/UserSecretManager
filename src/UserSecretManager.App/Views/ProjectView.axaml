@@ -141,6 +141,9 @@
       <TabItem Header="{Binding SecretsTabHeader}">
         <v:SecretsView DataContext="{Binding Secrets}" />
       </TabItem>
+      <TabItem Header="Etkin yapılandırma">
+        <v:EffectiveView DataContext="{Binding Effective}" />
+      </TabItem>
       <TabItem Header="Geçmiş">
         <v:HistoryView DataContext="{Binding History}" />
       </TabItem>
