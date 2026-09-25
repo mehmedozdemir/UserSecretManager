@@ -72,16 +72,54 @@ public sealed partial class ProfilesTabViewModel(ProjectViewModel project) : Obs
             return;
         }
 
-        var editor = new ProfileEditorViewModel(_configuration!, Store, UserSecretsId!);
+        var editor = ProfileEditorViewModel.ForNew(_configuration!, ProfileNames(), LoadProfile, ProfileExists);
         if (await project.Services.Dialogs.ShowDialogAsync(editor))
         {
-            var matchesCurrent = SecretProfileStore.Matches(editor.PreviewValues, _configuration!.Secrets);
-            Run(() => Store.Save(UserSecretsId!, editor.Name, editor.PreviewValues, editor.Description),
+            var matchesCurrent = SecretProfileStore.Matches(editor.Values, _configuration!.Secrets);
+            Run(() => Store.Save(UserSecretsId!, editor.Name, editor.Values, editor.Description),
                 matchesCurrent
                     ? $"'{editor.Name.Trim()}' profili kaydedildi. Şu anki secret'larla aynı olduğu için etkin görünür; başka bir profile geçtikten sonra buna dönmek için uygulayabilirsiniz."
                     : $"'{editor.Name.Trim()}' profili kaydedildi.");
         }
     }
+
+    internal async Task EditAsync(ProfileRowViewModel row)
+    {
+        IReadOnlyList<KeyValuePair<string, string>> values;
+        try
+        {
+            values = LoadProfile(row.Name);
+        }
+        catch (Exception ex) when (ex is CryptographicException or IOException or FormatException)
+        {
+            await project.Services.Dialogs.ShowMessageAsync("Profil açılamadı", ex.Message);
+            return;
+        }
+
+        var editor = ProfileEditorViewModel.ForExisting(_configuration!, ProfileNames(), LoadProfile, ProfileExists,
+            row.Name, row.Description, values);
+        if (!await project.Services.Dialogs.ShowDialogAsync(editor))
+        {
+            return;
+        }
+
+        var newName = editor.Name.Trim();
+        Run(() =>
+        {
+            if (!string.Equals(newName, row.Name, StringComparison.Ordinal))
+            {
+                Store.Rename(UserSecretsId!, row.Name, newName);
+            }
+
+            Store.Save(UserSecretsId!, newName, editor.Values, editor.Description);
+        }, $"'{newName}' profili güncellendi. secrets.json'a yazmak için profili uygulayın.");
+    }
+
+    private List<string> ProfileNames() => Profiles.Select(p => p.Name).ToList();
+
+    private IReadOnlyList<KeyValuePair<string, string>> LoadProfile(string name) => Store.Load(UserSecretsId!, name);
+
+    private bool ProfileExists(string name) => Store.Exists(UserSecretsId!, name);
 
     internal async Task ApplyAsync(ProfileRowViewModel row)
     {
@@ -118,19 +156,6 @@ public sealed partial class ProfilesTabViewModel(ProjectViewModel project) : Obs
         {
             Run(() => Store.Save(UserSecretsId!, row.Name, _configuration.Secrets.ToList(), row.Description),
                 $"'{row.Name}' profili güncellendi.");
-        }
-    }
-
-    internal async Task RenameAsync(ProfileRowViewModel row)
-    {
-        var input = new TextInputViewModel("Profili yeniden adlandır", "Yeni ad", row.Name, name =>
-            SecretProfileStore.ValidateName(name) ??
-            (!string.Equals(name.Trim(), row.Name, StringComparison.OrdinalIgnoreCase) && Store.Exists(UserSecretsId!, name)
-                ? "Bu adda bir profil zaten var"
-                : null));
-        if (await project.Services.Dialogs.ShowDialogAsync(input))
-        {
-            Run(() => Store.Rename(UserSecretsId!, row.Name, input.Text), "Profil yeniden adlandırıldı.");
         }
     }
 
@@ -181,7 +206,7 @@ public sealed partial class ProfileRowViewModel(SecretProfileInfo info, bool isA
     private Task OverwriteAsync() => owner.OverwriteAsync(this);
 
     [RelayCommand]
-    private Task RenameAsync() => owner.RenameAsync(this);
+    private Task EditAsync() => owner.EditAsync(this);
 
     [RelayCommand]
     private Task DeleteAsync() => owner.DeleteAsync(this);

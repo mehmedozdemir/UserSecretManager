@@ -19,6 +19,19 @@ public class SmallComponentTests
         Assert.Equal(environment, env);
     }
 
+    [Theory]
+    [InlineData("ConnectionStrings:Default", true)]
+    [InlineData("  Jwt:Key  ", true)]
+    [InlineData("", false)]
+    [InlineData("   ", false)]
+    [InlineData(":Key", false)]
+    [InlineData("Key:", false)]
+    [InlineData("A::B", false)]
+    public void ConfigKey_Validate_RejectsEmptySegments(string key, bool valid)
+    {
+        Assert.Equal(valid, ConfigKey.Validate(key) is null);
+    }
+
     [Fact]
     public void TextFileContent_RoundTripsBom()
     {

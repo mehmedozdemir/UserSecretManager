@@ -13,7 +13,8 @@ secret'ları görüntüleyip yönetmenizi sağlayan çapraz platform masaüstü 
 - `ocelot.json`, `serilog.json` gibi ek JSON yapılandırma dosyalarını projeye ekleyin.
 - **Etkin yapılandırma:** seçilen ortam ve launch profili için uygulamanın göreceği son değerleri, kaynaklarını ve
   boş kalan anahtarları görün.
-- **Profiller:** secret değerlerinin şifreli, adlandırılmış kopyaları (Local, Staging DB…); tek adımda uygulayın.
+- **Profiller:** aynı secret anahtarlarının farklı değerlerle şifreli, adlandırılmış kopyaları (Local, Staging DB…);
+  değerleri profilde düzenleyin, tek adımda uygulayın.
 - **Aktarım:** secret'ları parolalı dosya ile dışa/içe aktarın; ekip için `secrets.template.json` üretin.
 
 Tasarım kararları ve gerekçeleri: [docs/ANALYSIS.md](docs/ANALYSIS.md).

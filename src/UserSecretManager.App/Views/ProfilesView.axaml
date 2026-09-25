@@ -8,7 +8,7 @@
       <Border Grid.Row="0" Classes="toolbar" CornerRadius="6,6,0,0">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Grid.Column="0" VerticalAlignment="Center" Classes="muted" TextWrapping="Wrap"
-                     Text="Profil, secret değerlerinin adlandırılmış ve şifreli bir kopyasıdır (ör. Local, Staging DB). Bir profili uygulayarak secrets.json'ı tek adımda değiştirebilirsiniz." />
+                     Text="Profil, aynı secret anahtarlarının farklı değerlerle adlandırılmış ve şifreli bir kopyasıdır (ör. Local, Staging DB). Değerleri profilde düzenleyin, sonra profili uygulayarak secrets.json'ı tek adımda değiştirin." />
           <Button Grid.Column="1" Classes="primary" Margin="12,0,0,0" Command="{Binding CreateCommand}"
                   IsEnabled="{Binding IsAvailable}">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -50,11 +50,14 @@
                   <TextBlock Text="{Binding Details}" Classes="caption" />
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                  <Button Classes="icon" Command="{Binding RenameCommand}" ToolTip.Tip="Yeniden adlandır">
-                    <PathIcon Data="{StaticResource IconEdit}" />
+                  <Button Command="{Binding EditCommand}" ToolTip.Tip="Profilin adını ve secret değerlerini düzenle">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource IconEdit}" />
+                      <TextBlock Text="Düzenle" />
+                    </StackPanel>
                   </Button>
                   <Button Classes="icon" Command="{Binding OverwriteCommand}"
-                          ToolTip.Tip="Profil değerlerini şu anki secret'larla güncelle">
+                          ToolTip.Tip="Profil değerlerini şu anki secrets.json ile değiştir">
                     <PathIcon Data="{StaticResource IconSave}" />
                   </Button>
                   <Button Classes="icon" Command="{Binding DeleteCommand}" ToolTip.Tip="Profili sil">

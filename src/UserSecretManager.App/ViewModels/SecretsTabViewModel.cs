@@ -448,11 +448,10 @@ public sealed partial class SecretRowViewModel : ObservableObject
         }
 
         var key = Key.Trim();
-        KeyError = key.Length == 0 ? "Anahtar boş olamaz"
-            : key.StartsWith(':') || key.EndsWith(':') || key.Contains("::", StringComparison.Ordinal) ? "Geçersiz anahtar"
-            : rows.Any(r => !ReferenceEquals(r, this) && !r.IsDeleted && ConfigKey.Comparer.Equals(r.Key.Trim(), key))
-                ? "Bu anahtar zaten var"
-                : null;
+        KeyError = ConfigKey.Validate(key)
+                   ?? (rows.Any(r => !ReferenceEquals(r, this) && !r.IsDeleted && ConfigKey.Comparer.Equals(r.Key.Trim(), key))
+                       ? "Bu anahtar zaten var"
+                       : null);
     }
 
     partial void OnKeyChanged(string value) => _owner.OnStateChanged();

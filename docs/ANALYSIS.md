@@ -53,7 +53,8 @@ secret'ları daha sonra okuyup yönetebilen, çapraz platform bir masaüstü uyg
 
 ### v2 (tamamlandı)
 - Etkin yapılandırma görünümü: ortam + launch profili seçimi, değer kaynağı, ezilen katmanlar, boş değer uyarısı
-- Secret profilleri: şifreli, adlandırılmış setler; şu anki secret'lardan veya bir ortamdan oluşturma; değiştir/birleştir
+- Secret profilleri: şifreli, adlandırılmış setler; şu anki secret'lardan, bir ortamdan veya başka bir profilden
+  oluşturma; değerleri profilde düzenleme (secrets.json'dan bağımsız); değiştir/birleştir ile uygulama
 - Parola korumalı dışa/içe aktarma, `secrets.template.json` üretimi ve şablondan eksik anahtarları tamamlama
 - Ek config dosyaları (ör. `ocelot.json`) ekleme
 

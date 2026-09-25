@@ -3,56 +3,142 @@
              xmlns:vm="using:UserSecretManager.App.ViewModels"
              x:Class="UserSecretManager.App.Views.ProfileEditorView"
              x:DataType="vm:ProfileEditorViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="ListBox.entries > ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="TextBox.cellEditor">
+      <Setter Property="MinHeight" Value="28" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="20,16,20,14">
-    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,12">
+
+    <!-- Name and description -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,10">
       <TextBlock Grid.Row="0" Grid.Column="0" Text="Ad" VerticalAlignment="Center" Margin="0,0,12,0" />
       <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}" Watermark="ör. Local, Staging DB" />
       <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding NameError}" IsVisible="{Binding HasNameError}"
                  Classes="danger" Margin="0,4,0,0" />
       <TextBlock Grid.Row="2" Grid.Column="1" IsVisible="{Binding WillOverwrite}" Margin="0,4,0,0"
-                 Foreground="{DynamicResource WarningBrush}" Text="Bu adda bir profil var; değerleri değiştirilecek." />
+                 Foreground="{DynamicResource WarningBrush}" Text="Bu adda bir profil var; kaydedince değerleri değiştirilecek." />
       <TextBlock Grid.Row="3" Grid.Column="0" Text="Açıklama" VerticalAlignment="Center" Margin="0,8,12,0" />
       <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Description}" Margin="0,8,0,0" Watermark="İsteğe bağlı" />
     </Grid>
 
-    <StackPanel Grid.Row="1" Spacing="6" Margin="0,0,0,10">
-      <TextBlock Text="DEĞERLERİN KAYNAĞI" Classes="section" />
-      <RadioButton GroupName="profileSource" IsChecked="{Binding FromCurrentSecrets}"
-                   Content="Şu anki secret'lar (secrets.json)" />
-      <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding HasEnvironments}">
-        <RadioButton GroupName="profileSource" IsChecked="{Binding !FromCurrentSecrets}"
-                     Content="Bir ortamın değerleri:" VerticalAlignment="Center" />
-        <ComboBox ItemsSource="{Binding Environments}" SelectedItem="{Binding Environment}" MinWidth="160"
-                  IsEnabled="{Binding !FromCurrentSecrets}" />
+    <!-- Starting values (new profiles only) -->
+    <Border Grid.Row="1" Classes="card" Padding="12,10" Margin="0,0,0,10" IsVisible="{Binding IsNew}">
+      <StackPanel Spacing="6">
+        <TextBlock Text="BAŞLANGIÇ DEĞERLERİ" Classes="section" />
+        <WrapPanel Orientation="Horizontal">
+          <RadioButton GroupName="profileSource" IsChecked="{Binding IsFromCurrentSecrets}"
+                       Content="Şu anki secret'lar" Margin="0,0,20,4" />
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,20,4" IsVisible="{Binding HasEnvironments}">
+            <RadioButton GroupName="profileSource" IsChecked="{Binding IsFromEnvironment}" Content="Ortam:"
+                         VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding Environments}" SelectedItem="{Binding Environment}" MinWidth="140"
+                      IsEnabled="{Binding IsFromEnvironment}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,20,4" IsVisible="{Binding HasOtherProfiles}">
+            <RadioButton GroupName="profileSource" IsChecked="{Binding IsFromOtherProfile}" Content="Profili kopyala:"
+                         VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding OtherProfiles}" SelectedItem="{Binding OtherProfile}" MinWidth="140"
+                      IsEnabled="{Binding IsFromOtherProfile}" />
+          </StackPanel>
+          <RadioButton GroupName="profileSource" IsChecked="{Binding IsEmptySource}" Content="Boş" Margin="0,0,0,4" />
+        </WrapPanel>
+        <TextBlock Classes="caption" TextWrapping="Wrap"
+                   Text="Başlangıç değerleri yalnızca tabloyu doldurur; kaydetmeden önce aşağıda istediğiniz değeri değiştirebilirsiniz." />
       </StackPanel>
-      <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !FromCurrentSecrets}"
-                 Text="Mevcut secret anahtarlarının seçilen ortamda (appsettings.json + appsettings.{Ortam}.json) aldığı değerler kullanılır." />
-    </StackPanel>
-
-    <Border Grid.Row="2" Classes="notice warning" IsVisible="{Binding HasMissing}" Margin="0,0,0,10">
-      <TextBlock Text="{Binding MissingText}" TextWrapping="Wrap" />
     </Border>
 
+    <!-- Source note -->
+    <Border Grid.Row="2" Classes="notice warning" IsVisible="{Binding HasSourceNote}" Margin="0,0,0,10">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" Text="{Binding SourceNote}" TextWrapping="Wrap" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Margin="10,0,0,0" Command="{Binding RefillFromSourceCommand}" IsVisible="{Binding IsEdited}">
+          <TextBlock Text="Kaynaktan yeniden doldur" />
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- Values table -->
     <Border Grid.Row="3" Classes="card" ClipToBounds="True">
-      <Panel>
-        <ListBox Classes="plain" ItemsSource="{Binding PreviewRows}">
-          <ListBox.ItemTemplate>
-            <DataTemplate DataType="vm:ProfileValueRowViewModel">
-              <Grid ColumnDefinitions="*,*" Margin="12,5">
-                <TextBlock Grid.Column="0" Text="{Binding Key}" Classes="mono" TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="1" Text="{Binding MaskedValue}" Classes="mono muted" />
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-        <TextBlock IsVisible="{Binding !HasPreview}" Classes="muted" Margin="16" TextWrapping="Wrap"
-                   Text="Profile alınacak değer yok." />
-      </Panel>
+      <Grid RowDefinitions="Auto,Auto,*">
+        <Border Grid.Row="0" Classes="toolbar" CornerRadius="6,6,0,0" Padding="10,6">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+              <Button Command="{Binding AddRowCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource IconPlus}" />
+                  <TextBlock Text="Secret ekle" />
+                </StackPanel>
+              </Button>
+              <Button Command="{Binding AddMissingFromSecretsCommand}" IsEnabled="{Binding CanAddMissingFromSecrets}"
+                      ToolTip.Tip="secrets.json'da olup bu profilde olmayan anahtarları mevcut değerleriyle ekler">
+                <TextBlock Text="{Binding MissingFromSecretsText}" />
+              </Button>
+            </StackPanel>
+            <ToggleButton Grid.Column="1" Classes="subtle" IsChecked="{Binding RevealAll}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource IconEye}" />
+                <TextBlock Text="Tümünü göster" />
+              </StackPanel>
+            </ToggleButton>
+          </Grid>
+        </Border>
+        <Border Grid.Row="1" Background="{DynamicResource Surface0Brush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1" MinHeight="30" Padding="12,0">
+          <Grid ColumnDefinitions="2*,3*,72">
+            <TextBlock Grid.Column="0" Text="ANAHTAR" Classes="section" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="DEĞER" Classes="section" VerticalAlignment="Center" Margin="10,0,0,0" />
+          </Grid>
+        </Border>
+        <Panel Grid.Row="2">
+          <ListBox Classes="plain entries" ItemsSource="{Binding Rows}">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:ProfileEntryViewModel">
+                <Grid ColumnDefinitions="2*,3*,72" Margin="12,4">
+                  <StackPanel Grid.Column="0">
+                    <TextBox Classes="mono cellEditor" Text="{Binding Key}" Watermark="Section:Key" />
+                    <TextBlock Text="{Binding KeyError}" IsVisible="{Binding HasKeyError}" Classes="danger"
+                               FontSize="11.5" Margin="2,2,0,0" />
+                  </StackPanel>
+                  <TextBox Grid.Column="1" Classes="mono cellEditor" Margin="10,0,0,0" VerticalAlignment="Top"
+                           Text="{Binding Value}" PasswordChar="•" RevealPassword="{Binding IsRevealed}" />
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right"
+                              VerticalAlignment="Top">
+                    <ToggleButton Classes="icon" IsChecked="{Binding IsRevealed}" ToolTip.Tip="Göster / gizle">
+                      <PathIcon Data="{StaticResource IconEye}" />
+                    </ToggleButton>
+                    <Button Classes="icon" Command="{Binding RemoveCommand}" ToolTip.Tip="Profilden çıkar">
+                      <PathIcon Data="{StaticResource IconDelete}" />
+                    </Button>
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock IsVisible="{Binding !HasRows}" Classes="muted" Margin="16" TextWrapping="Wrap"
+                     Text="Profilde secret yok. &quot;Secret ekle&quot; ile anahtar ve değer girin." />
+        </Panel>
+      </Grid>
     </Border>
 
-    <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,14,0,0">
-      <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
-      <Button Classes="primary" Content="Profili kaydet" Command="{Binding SaveCommand}" IsDefault="True" />
-    </StackPanel>
+    <!-- Footer -->
+    <Grid Grid.Row="4" ColumnDefinitions="*,Auto" Margin="0,14,0,0">
+      <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+        <TextBlock Text="{Binding RowsSummary}" FontWeight="Medium" />
+        <TextBlock Classes="caption" Text="Kaydetmek yalnızca profili değiştirir; secrets.json'a yazmak için profili uygulayın." />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+        <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
+        <Button Classes="primary" Content="Profili kaydet" Command="{Binding SaveCommand}" />
+      </StackPanel>
+    </Grid>
   </Grid>
 </UserControl>

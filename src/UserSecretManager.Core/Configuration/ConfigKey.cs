@@ -18,6 +18,22 @@ public static class ConfigKey
     /// <summary>Splits a key into its segments.</summary>
     public static string[] Split(string key) => key.Split(Delimiter);
 
+    /// <summary>Returns why <paramref name="key"/> is not a usable configuration key, or <c>null</c> when it is.</summary>
+    public static string? Validate(string? key)
+    {
+        var trimmed = key?.Trim() ?? string.Empty;
+        if (trimmed.Length == 0)
+        {
+            return "Anahtar boş olamaz";
+        }
+
+        return trimmed.StartsWith(Delimiter, StringComparison.Ordinal) ||
+               trimmed.EndsWith(Delimiter, StringComparison.Ordinal) ||
+               trimmed.Contains(Delimiter + Delimiter, StringComparison.Ordinal)
+            ? "Geçersiz anahtar: bölüm adları boş olamaz"
+            : null;
+    }
+
     /// <summary>The last segment of a key.</summary>
     public static string LastSegment(string key)
     {
