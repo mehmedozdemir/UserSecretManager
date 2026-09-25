@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UserSecretManager.App.ViewModels"
+             xmlns:v="using:UserSecretManager.App.Views"
+             x:Class="UserSecretManager.App.Views.MigrationReviewView"
+             x:DataType="vm:MigrationReviewViewModel">
+
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20,16,20,14">
+
+    <!-- Notices -->
+    <ScrollViewer Grid.Row="0" MaxHeight="170" IsVisible="{Binding HasNotices}" Margin="0,0,0,12">
+      <ItemsControl ItemsSource="{Binding Notices}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="6" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:NoticeViewModel">
+            <v:NoticeView />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <!-- Segmented switch -->
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,10">
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4">
+        <ToggleButton IsChecked="{Binding IsPlanTab, Mode=OneWay}" Command="{Binding ShowPlanCommand}">
+          <TextBlock Text="1 · Değerler ve dosyalar" />
+        </ToggleButton>
+        <ToggleButton IsChecked="{Binding IsPreviewTab, Mode=OneWay}" Command="{Binding ShowPreviewCommand}">
+          <TextBlock Text="2 · Değişiklik önizlemesi" />
+        </ToggleButton>
+      </StackPanel>
+      <ToggleButton Grid.Column="2" Classes="subtle" IsChecked="{Binding RevealValues}" IsVisible="{Binding IsPlanTab}">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <PathIcon Data="{StaticResource IconEye}" />
+          <TextBlock Text="Değerleri göster" />
+        </StackPanel>
+      </ToggleButton>
+    </Grid>
+
+    <!-- Plan -->
+    <Border Grid.Row="2" Classes="card" IsVisible="{Binding IsPlanTab}" ClipToBounds="True">
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding Items}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:MigrationItemViewModel">
+              <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="16,12">
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*">
+                  <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                    <PathIcon Data="{StaticResource IconKey}" Foreground="{DynamicResource AccentBrush}" />
+                    <SelectableTextBlock Text="{Binding Key}" Classes="mono" FontWeight="SemiBold" />
+                    <Border Classes="chip warning" IsVisible="{Binding HasConflict}"
+                            ToolTip.Tip="Dosyalarda farklı değerler var; secret olacak değeri seçin">
+                      <TextBlock Text="Farklı değerler" />
+                    </Border>
+                  </StackPanel>
+
+                  <!-- Value choice -->
+                  <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Margin="22,0,16,0">
+                    <TextBlock Text="SECRET DEĞERİ" Classes="section" />
+                    <ItemsControl ItemsSource="{Binding Candidates}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:CandidateViewModel">
+                          <RadioButton GroupName="{Binding GroupName}" IsChecked="{Binding IsSelected}" Margin="0,2">
+                            <StackPanel Spacing="1">
+                              <TextBlock Text="{Binding DisplayValue}" Classes="mono" TextWrapping="Wrap" />
+                              <TextBlock Text="{Binding Sources}" Classes="caption" />
+                            </StackPanel>
+                          </RadioButton>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+
+                  <!-- File actions -->
+                  <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="APPSETTINGS'TEN TEMİZLE (&quot;&quot; YAP)" Classes="section" />
+                    <ItemsControl ItemsSource="{Binding FileActions}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:FileActionViewModel">
+                          <StackPanel Margin="0,2">
+                            <CheckBox IsChecked="{Binding IsEnabled}">
+                              <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{Binding FileName}" Classes="mono" />
+                              </StackPanel>
+                            </CheckBox>
+                            <Border Classes="notice warning" IsVisible="{Binding HasWarning}" Margin="28,2,0,4"
+                                    Padding="8,6">
+                              <TextBlock Text="{Binding Warning}" TextWrapping="Wrap" FontSize="12" />
+                            </Border>
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Border>
+
+    <!-- Preview -->
+    <v:ChangePreviewView Grid.Row="2" DataContext="{Binding Preview}" IsVisible="{Binding $parent[UserControl].((vm:MigrationReviewViewModel)DataContext).IsPreviewTab}" />
+
+    <!-- Footer -->
+    <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,14,0,0">
+      <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+        <TextBlock Text="{Binding Summary}" FontWeight="Medium" />
+        <TextBlock Text="{Binding Error}" Classes="danger" TextWrapping="Wrap"
+                   IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <TextBlock Classes="caption" Text="Değişiklikten önce tüm dosyalar yedeklenir; Geçmiş sekmesinden geri alabilirsiniz." />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+        <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
+        <Button Classes="primary" Command="{Binding ApplyCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <PathIcon Data="{StaticResource IconKey}" Foreground="White" />
+            <TextBlock Text="Taşı ve uygula" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</UserControl>

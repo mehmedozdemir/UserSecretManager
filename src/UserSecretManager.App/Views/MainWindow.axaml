@@ -1,0 +1,155 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:UserSecretManager.App.ViewModels"
+        xmlns:v="using:UserSecretManager.App.Views"
+        x:Class="UserSecretManager.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="User Secret Manager"
+        Width="1360" Height="840" MinWidth="960" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        DragDrop.AllowDrop="True">
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="vm:ProjectViewModel">
+      <v:ProjectView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SolutionOverviewViewModel">
+      <v:SolutionOverviewView />
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Grid ColumnDefinitions="300,*">
+
+    <!-- Sidebar -->
+    <Border Grid.Column="0" Background="{DynamicResource SidebarBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+      <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="16,16,16,12">
+          <Border Width="30" Height="30" CornerRadius="7" Background="{DynamicResource AccentBrush}">
+            <PathIcon Data="{StaticResource IconKey}" Foreground="White" Width="16" Height="16" />
+          </Border>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="User Secret Manager" FontWeight="SemiBold" FontSize="14" />
+            <TextBlock Text="appsettings → dotnet user-secrets" Classes="caption" FontSize="11" />
+          </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="12,0,12,8">
+          <TextBox Grid.Column="0" Watermark="Proje ara…" Text="{Binding SidebarFilter}">
+            <TextBox.InnerLeftContent>
+              <PathIcon Data="{StaticResource IconSearch}" Margin="8,0,0,0" Opacity="0.6" />
+            </TextBox.InnerLeftContent>
+          </TextBox>
+          <Button Grid.Column="1" Margin="6,0,0,0" Classes="primary" Command="{Binding AddCommand}"
+                  ToolTip.Tip="Solution veya proje ekle (.sln, .slnx, .csproj)">
+            <PathIcon Data="{StaticResource IconPlus}" Foreground="White" />
+          </Button>
+        </Grid>
+
+        <Grid Grid.Row="2">
+          <TreeView Classes="sidebar" ItemsSource="{Binding Nodes}" SelectedItem="{Binding SelectedNode}"
+                    Background="Transparent" Padding="6,0">
+            <TreeView.Styles>
+              <Style Selector="TreeViewItem" x:DataType="vm:WorkspaceNodeViewModel">
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                <Setter Property="IsVisible" Value="{Binding IsVisible}" />
+              </Style>
+            </TreeView.Styles>
+            <TreeView.ItemTemplate>
+              <TreeDataTemplate DataType="vm:WorkspaceNodeViewModel" ItemsSource="{Binding Children}">
+                <Grid ColumnDefinitions="Auto,*,Auto" Background="Transparent" ToolTip.Tip="{Binding ToolTip}">
+                  <Grid.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="Favori olarak işaretle / kaldır" IsVisible="{Binding IsRoot}"
+                                Command="{Binding $parent[TreeView].((vm:MainWindowViewModel)DataContext).ToggleFavoriteCommand}"
+                                CommandParameter="{Binding}" />
+                      <MenuItem Header="Yenile"
+                                Command="{Binding $parent[TreeView].((vm:MainWindowViewModel)DataContext).RefreshNodeCommand}"
+                                CommandParameter="{Binding}" />
+                      <MenuItem Header="Klasörü aç"
+                                Command="{Binding $parent[TreeView].((vm:MainWindowViewModel)DataContext).OpenFolderCommand}"
+                                CommandParameter="{Binding}" />
+                      <MenuItem Header="Yolu kopyala"
+                                Command="{Binding $parent[TreeView].((vm:MainWindowViewModel)DataContext).CopyPathCommand}"
+                                CommandParameter="{Binding}" />
+                      <Separator IsVisible="{Binding IsRoot}" />
+                      <MenuItem Header="Listeden kaldır" IsVisible="{Binding IsRoot}"
+                                Command="{Binding $parent[TreeView].((vm:MainWindowViewModel)DataContext).RemoveCommand}"
+                                CommandParameter="{Binding}" />
+                    </ContextMenu>
+                  </Grid.ContextMenu>
+                  <Panel Grid.Column="0" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource IconSolution}" IsVisible="{Binding IsSolution}"
+                              Foreground="{DynamicResource AccentBrush}" />
+                    <PathIcon Data="{StaticResource IconProject}" IsVisible="{Binding IsProject}"
+                              Foreground="{DynamicResource TextSecondaryBrush}" />
+                  </Panel>
+                  <TextBlock Grid.Column="1" Text="{Binding Title}" VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis" />
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="6,0,4,0">
+                    <PathIcon Data="{StaticResource IconAlert}" Classes="warning" IsVisible="{Binding IsMissing}"
+                              Width="12" Height="12" />
+                    <PathIcon Data="{StaticResource IconStar}" Foreground="#E0A100" IsVisible="{Binding IsFavorite}"
+                              Width="12" Height="12" />
+                  </StackPanel>
+                </Grid>
+              </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+          </TreeView>
+
+          <StackPanel IsVisible="{Binding !HasNodes}" VerticalAlignment="Center" Margin="24" Spacing="8">
+            <TextBlock Text="Henüz proje yok" FontWeight="SemiBold" HorizontalAlignment="Center" />
+            <TextBlock Text="+ düğmesiyle veya dosyayı pencereye sürükleyerek bir solution ya da proje ekleyin."
+                       Classes="caption" TextWrapping="Wrap" TextAlignment="Center" />
+          </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="3" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="8,6">
+          <StackPanel Orientation="Horizontal" Spacing="2">
+            <Button Classes="icon" Command="{Binding CycleThemeCommand}" ToolTip.Tip="{Binding ThemeLabel}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource IconTheme}" />
+                <TextBlock Text="{Binding ThemeLabel}" FontSize="12" />
+              </StackPanel>
+            </Button>
+            <Button Classes="icon" Command="{Binding OpenDataFolderCommand}"
+                    ToolTip.Tip="{Binding DataDirectory, StringFormat='Uygulama verileri ve yedekler: {0}'}">
+              <PathIcon Data="{StaticResource IconFolder}" />
+            </Button>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Border>
+
+    <!-- Content -->
+    <Panel Grid.Column="1">
+      <ContentControl Content="{Binding CurrentContent}" />
+
+      <StackPanel IsVisible="{Binding CurrentContent, Converter={x:Static ObjectConverters.IsNull}}"
+                  VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="520">
+        <PathIcon Data="{StaticResource IconKey}" Width="40" Height="40" Opacity="0.35" />
+        <TextBlock Text="Bir proje seçin" Classes="h1" HorizontalAlignment="Center" />
+        <TextBlock Classes="muted" TextWrapping="Wrap" TextAlignment="Center"
+                   Text="Soldan bir proje veya solution seçin. appsettings dosyalarındaki hassas değerleri seçip dotnet user-secrets'a taşıyabilir, mevcut secret'ları görüntüleyip düzenleyebilirsiniz." />
+        <Button Classes="primary" HorizontalAlignment="Center" Margin="0,8,0,0" Command="{Binding AddCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <PathIcon Data="{StaticResource IconPlus}" Foreground="White" />
+            <TextBlock Text="Solution / proje ekle" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+
+      <!-- Status toast -->
+      <Border IsVisible="{Binding HasStatus}" VerticalAlignment="Top" HorizontalAlignment="Right"
+              Margin="0,56,20,0" Padding="14,10" CornerRadius="6" MaxWidth="560"
+              Background="{DynamicResource Surface1Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+              BoxShadow="0 4 16 0 #30000000">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <PathIcon Data="{StaticResource IconInfo}" Classes="info" IsVisible="{Binding !StatusIsError}" />
+          <PathIcon Data="{StaticResource IconAlert}" Classes="error" IsVisible="{Binding StatusIsError}" />
+          <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
+        </StackPanel>
+      </Border>
+    </Panel>
+  </Grid>
+</Window>

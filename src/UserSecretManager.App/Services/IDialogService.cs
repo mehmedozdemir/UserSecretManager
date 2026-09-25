@@ -1,0 +1,19 @@
+using UserSecretManager.App.ViewModels;
+
+namespace UserSecretManager.App.Services;
+
+/// <summary>Opens dialogs and pickers; keeps view models free of window types.</summary>
+public interface IDialogService
+{
+    /// <summary>Lets the user pick solution or project files. Returns local paths.</summary>
+    Task<IReadOnlyList<string>> PickSolutionOrProjectFilesAsync();
+
+    /// <summary>Asks a yes/no question.</summary>
+    Task<bool> ConfirmAsync(string title, string message, string confirmText, bool isDestructive = false);
+
+    /// <summary>Shows a message.</summary>
+    Task ShowMessageAsync(string title, string message);
+
+    /// <summary>Shows a dialog whose content is <paramref name="viewModel"/>; returns whether it was accepted.</summary>
+    Task<bool> ShowDialogAsync(DialogViewModelBase viewModel);
+}

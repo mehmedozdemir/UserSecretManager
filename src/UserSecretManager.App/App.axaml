@@ -1,0 +1,101 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="UserSecretManager.App.App"
+             RequestedThemeVariant="Default">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="Surface0Brush" Color="#F4F5F7" />
+          <SolidColorBrush x:Key="Surface1Brush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="SidebarBrush" Color="#ECEEF2" />
+          <SolidColorBrush x:Key="HoverBrush" Color="#0F000000" />
+          <SolidColorBrush x:Key="BorderBrush" Color="#DCE0E6" />
+          <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B1F24" />
+          <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5B6573" />
+          <SolidColorBrush x:Key="AccentBrush" Color="#2563EB" />
+          <SolidColorBrush x:Key="AccentSoftBrush" Color="#E3ECFD" />
+          <SolidColorBrush x:Key="AccentTextBrush" Color="#1D4ED8" />
+          <SolidColorBrush x:Key="DangerBrush" Color="#C62828" />
+          <SolidColorBrush x:Key="DangerSoftBrush" Color="#FDECEC" />
+          <SolidColorBrush x:Key="WarningBrush" Color="#9A5B00" />
+          <SolidColorBrush x:Key="WarningSoftBrush" Color="#FFF4E0" />
+          <SolidColorBrush x:Key="SuccessBrush" Color="#1E7F4F" />
+          <SolidColorBrush x:Key="SuccessSoftBrush" Color="#E5F5EC" />
+          <SolidColorBrush x:Key="ChipBrush" Color="#EAEDF1" />
+          <SolidColorBrush x:Key="DiffAddedBrush" Color="#E3F4E8" />
+          <SolidColorBrush x:Key="DiffRemovedBrush" Color="#FCE6E6" />
+          <SolidColorBrush x:Key="TreeViewItemBackgroundSelected" Color="#DCE6FB" />
+          <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPointerOver" Color="#D2DEF8" />
+          <SolidColorBrush x:Key="TreeViewItemForegroundSelected" Color="#1B1F24" />
+          <SolidColorBrush x:Key="TreeViewItemForegroundSelectedPointerOver" Color="#1B1F24" />
+          <SolidColorBrush x:Key="ListBoxItemBackgroundSelected" Color="#E8EEFB" />
+          <SolidColorBrush x:Key="ListBoxItemBackgroundSelectedPointerOver" Color="#DFE7FA" />
+          <SolidColorBrush x:Key="ListBoxItemForegroundSelected" Color="#1B1F24" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="Surface0Brush" Color="#15171B" />
+          <SolidColorBrush x:Key="Surface1Brush" Color="#1D2025" />
+          <SolidColorBrush x:Key="SidebarBrush" Color="#191B20" />
+          <SolidColorBrush x:Key="HoverBrush" Color="#14FFFFFF" />
+          <SolidColorBrush x:Key="BorderBrush" Color="#2D323A" />
+          <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E6E8EB" />
+          <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9AA3AF" />
+          <SolidColorBrush x:Key="AccentBrush" Color="#5B8DEF" />
+          <SolidColorBrush x:Key="AccentSoftBrush" Color="#1C2C4A" />
+          <SolidColorBrush x:Key="AccentTextBrush" Color="#9DBBF7" />
+          <SolidColorBrush x:Key="DangerBrush" Color="#F28B82" />
+          <SolidColorBrush x:Key="DangerSoftBrush" Color="#3A1D1D" />
+          <SolidColorBrush x:Key="WarningBrush" Color="#F6C453" />
+          <SolidColorBrush x:Key="WarningSoftBrush" Color="#352A12" />
+          <SolidColorBrush x:Key="SuccessBrush" Color="#6DD49C" />
+          <SolidColorBrush x:Key="SuccessSoftBrush" Color="#15301F" />
+          <SolidColorBrush x:Key="ChipBrush" Color="#272B32" />
+          <SolidColorBrush x:Key="DiffAddedBrush" Color="#133021" />
+          <SolidColorBrush x:Key="DiffRemovedBrush" Color="#3A1B1E" />
+          <SolidColorBrush x:Key="TreeViewItemBackgroundSelected" Color="#23324F" />
+          <SolidColorBrush x:Key="TreeViewItemBackgroundSelectedPointerOver" Color="#2A3B5C" />
+          <SolidColorBrush x:Key="TreeViewItemForegroundSelected" Color="#E6E8EB" />
+          <SolidColorBrush x:Key="TreeViewItemForegroundSelectedPointerOver" Color="#E6E8EB" />
+          <SolidColorBrush x:Key="ListBoxItemBackgroundSelected" Color="#1F2A40" />
+          <SolidColorBrush x:Key="ListBoxItemBackgroundSelectedPointerOver" Color="#26334D" />
+          <SolidColorBrush x:Key="ListBoxItemForegroundSelected" Color="#E6E8EB" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+
+      <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace</FontFamily>
+
+      <!-- Icons: Material Design Icons (Apache 2.0), 24x24 -->
+      <StreamGeometry x:Key="IconPlus">M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z</StreamGeometry>
+      <StreamGeometry x:Key="IconSearch">M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z</StreamGeometry>
+      <StreamGeometry x:Key="IconEye">M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z</StreamGeometry>
+      <StreamGeometry x:Key="IconCopy">M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z</StreamGeometry>
+      <StreamGeometry x:Key="IconDelete">M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z</StreamGeometry>
+      <StreamGeometry x:Key="IconFolder">M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z</StreamGeometry>
+      <StreamGeometry x:Key="IconStar">M12,17.27L18.18,21L16.54,13.64L22,8.73L14.81,8.11L12,1.5L9.19,8.11L2,8.73L7.45,13.64L5.82,21L12,17.27Z</StreamGeometry>
+      <StreamGeometry x:Key="IconRefresh">M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</StreamGeometry>
+      <StreamGeometry x:Key="IconAlert">M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z</StreamGeometry>
+      <StreamGeometry x:Key="IconInfo">M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z</StreamGeometry>
+      <StreamGeometry x:Key="IconKey">M7,14A2,2 0 0,1 5,12A2,2 0 0,1 7,10A2,2 0 0,1 9,12A2,2 0 0,1 7,14M12.65,10C11.83,7.67 9.61,6 7,6A6,6 0 0,0 1,12A6,6 0 0,0 7,18C9.61,18 11.83,16.33 12.65,14H17V18H21V14H23V10H12.65Z</StreamGeometry>
+      <StreamGeometry x:Key="IconUndo">M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z</StreamGeometry>
+      <StreamGeometry x:Key="IconArrowRight">M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z</StreamGeometry>
+      <StreamGeometry x:Key="IconClose">M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z</StreamGeometry>
+      <StreamGeometry x:Key="IconTheme">M12,18V6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,15.31L23.31,12L20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31Z</StreamGeometry>
+      <StreamGeometry x:Key="IconSolution">M4,6H2V20A2,2 0 0,0 4,22H18V20H4V6M20,2H8A2,2 0 0,0 6,4V16A2,2 0 0,0 8,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2Z</StreamGeometry>
+      <StreamGeometry x:Key="IconProject">M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9V3.5L18.5,9H13Z</StreamGeometry>
+      <StreamGeometry x:Key="IconSave">M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z</StreamGeometry>
+      <StreamGeometry x:Key="IconHistory">M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z</StreamGeometry>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme DensityStyle="Compact">
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Light" Accent="#2563EB" RegionColor="#F4F5F7" />
+        <ColorPaletteResources x:Key="Dark" Accent="#5B8DEF" RegionColor="#15171B" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <StyleInclude Source="avares://UserSecretManager/Styles/AppStyles.axaml" />
+  </Application.Styles>
+</Application>

@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UserSecretManager.App.ViewModels"
+             x:Class="UserSecretManager.App.Views.HistoryView"
+             x:DataType="vm:HistoryTabViewModel">
+  <Border Classes="card" Margin="0,8,0,12" ClipToBounds="True">
+    <Grid RowDefinitions="Auto,*">
+      <Border Grid.Row="0" Classes="toolbar" CornerRadius="6,6,0,0">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" Classes="muted" TextWrapping="Wrap"
+                     Text="Her işlemden önce değişen dosyaların yedeği alınır. Bir kaydı geri yüklediğinizde dosyalar o işlemden önceki haline döner." />
+          <Button Grid.Column="1" Margin="12,0,0,0" Command="{Binding OpenBackupsFolderCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource IconFolder}" />
+              <TextBlock Text="Yedek klasörü" />
+            </StackPanel>
+          </Button>
+        </Grid>
+      </Border>
+
+      <Panel Grid.Row="1">
+        <ListBox Classes="plain" ItemsSource="{Binding Entries}">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+              <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+              <Setter Property="BorderThickness" Value="0,0,0,1" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:HistoryEntryViewModel">
+              <Grid ColumnDefinitions="Auto,*,Auto" Margin="14,10">
+                <PathIcon Grid.Column="0" Data="{StaticResource IconHistory}" VerticalAlignment="Top" Margin="0,2,12,0"
+                          Foreground="{DynamicResource TextSecondaryBrush}" />
+                <StackPanel Grid.Column="1" Spacing="3">
+                  <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontWeight="Medium" />
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding When}" Classes="caption mono" />
+                    <TextBlock Text="{Binding FilesText}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                  <Button Classes="icon" Command="{Binding OpenFolderCommand}" ToolTip.Tip="Yedek klasörünü aç">
+                    <PathIcon Data="{StaticResource IconFolder}" />
+                  </Button>
+                  <Button Command="{Binding RestoreCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource IconUndo}" />
+                      <TextBlock Text="Bu işlemden önceki hale dön" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock IsVisible="{Binding IsEmpty}" Text="Bu proje için henüz işlem yapılmadı." Classes="muted"
+                   Margin="24" />
+      </Panel>
+    </Grid>
+  </Border>
+</UserControl>

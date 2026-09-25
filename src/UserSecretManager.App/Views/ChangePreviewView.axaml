@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UserSecretManager.App.ViewModels"
+             x:Class="UserSecretManager.App.Views.ChangePreviewView"
+             x:DataType="vm:ChangePreviewViewModel">
+  <Border Classes="card" ClipToBounds="True">
+    <Grid ColumnDefinitions="240,*">
+      <Border Grid.Column="0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0"
+              Background="{DynamicResource Surface0Brush}">
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Grid.Row="0" Text="DEĞİŞECEK DOSYALAR" Classes="section" Margin="12,10,12,6" />
+          <ListBox Grid.Row="1" Classes="plain" ItemsSource="{Binding Files}" SelectedItem="{Binding SelectedFile}">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:FileDiffViewModel">
+                <StackPanel Margin="12,6" Spacing="2" ToolTip.Tip="{Binding Path}">
+                  <TextBlock Text="{Binding DisplayName}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding KindLabel}" Classes="caption" />
+                    <TextBlock Text="{Binding AddedCount, StringFormat='+{0}'}" FontSize="12"
+                               Foreground="{DynamicResource SuccessBrush}" />
+                    <TextBlock Text="{Binding RemovedCount, StringFormat='−{0}'}" FontSize="12"
+                               Foreground="{DynamicResource DangerBrush}" />
+                    <TextBlock Text="yeni dosya" IsVisible="{Binding IsNewFile}" Classes="caption" />
+                  </StackPanel>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <Panel Grid.Column="1">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" DataContext="{Binding SelectedFile}"
+                      x:DataType="vm:FileDiffViewModel">
+          <ItemsControl ItemsSource="{Binding Lines}" Margin="0,6">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:DiffLineViewModel">
+                <Border Classes.added="{Binding IsAdded}" Classes.removed="{Binding IsRemoved}">
+                  <Border.Styles>
+                    <Style Selector="Border.added">
+                      <Setter Property="Background" Value="{DynamicResource DiffAddedBrush}" />
+                    </Style>
+                    <Style Selector="Border.removed">
+                      <Setter Property="Background" Value="{DynamicResource DiffRemovedBrush}" />
+                    </Style>
+                  </Border.Styles>
+                  <Grid ColumnDefinitions="44,44,20,*">
+                    <TextBlock Grid.Column="0" Text="{Binding OldNumber}" Classes="mono caption" TextAlignment="Right"
+                               Margin="0,1,6,1" />
+                    <TextBlock Grid.Column="1" Text="{Binding NewNumber}" Classes="mono caption" TextAlignment="Right"
+                               Margin="0,1,6,1" />
+                    <TextBlock Grid.Column="2" Text="{Binding Marker}" Classes="mono" Margin="0,1" />
+                    <SelectableTextBlock Grid.Column="3" Text="{Binding Text}" Classes="mono" Margin="0,1,12,1"
+                                         Classes.muted="{Binding IsGap}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+        <TextBlock IsVisible="{Binding IsEmpty}" Text="Değişiklik yok." Classes="muted" Margin="16" />
+      </Panel>
+    </Grid>
+  </Border>
+</UserControl>

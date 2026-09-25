@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UserSecretManager.App.ViewModels"
+             x:Class="UserSecretManager.App.Views.NoticeView"
+             x:DataType="vm:NoticeViewModel">
+  <Border Classes="notice" Classes.info="{Binding IsInfo}" Classes.warning="{Binding IsWarning}"
+          Classes.error="{Binding IsError}">
+    <Grid ColumnDefinitions="Auto,*">
+      <Panel Grid.Column="0" Margin="0,1,10,0" VerticalAlignment="Top">
+        <PathIcon Data="{StaticResource IconInfo}" Classes="info" IsVisible="{Binding IsInfo}" />
+        <PathIcon Data="{StaticResource IconAlert}" Classes="warning" IsVisible="{Binding IsWarning}" />
+        <PathIcon Data="{StaticResource IconAlert}" Classes="error" IsVisible="{Binding IsError}" />
+      </Panel>
+      <SelectableTextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" />
+    </Grid>
+  </Border>
+</UserControl>

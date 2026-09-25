@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UserSecretManager.App.ViewModels"
+             xmlns:v="using:UserSecretManager.App.Views"
+             xmlns:cfg="using:UserSecretManager.Core.Configuration"
+             x:Class="UserSecretManager.App.Views.MoveBackView"
+             x:DataType="vm:MoveBackViewModel">
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20,16,20,14">
+    <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+      <TextBlock Text="{Binding KeyCount, StringFormat='{}{0} secret seçilen appsettings dosyasına yazılacak'}"
+                 FontWeight="Medium" />
+      <TextBlock Text="{Binding KeysText}" Classes="caption mono" TextWrapping="Wrap" />
+    </StackPanel>
+
+    <StackPanel Grid.Row="1" Spacing="8" Margin="0,0,0,12">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="Hedef dosya" VerticalAlignment="Center" />
+        <ComboBox ItemsSource="{Binding Files}" SelectedItem="{Binding TargetFile}" MinWidth="280">
+          <ComboBox.ItemTemplate>
+            <DataTemplate DataType="cfg:AppSettingsFile">
+              <TextBlock Text="{Binding FileName}" Classes="mono" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <CheckBox IsChecked="{Binding RemoveFromSecrets}" Content="Secret'lardan sil" Margin="12,0,0,0" />
+      </StackPanel>
+      <Border Classes="notice warning" IsVisible="{Binding ShowsNonDevelopmentWarning}">
+        <TextBlock TextWrapping="Wrap"
+                   Text="Seçilen dosya Development dışı bir ortama ait. Değerler bu dosyaya düz metin olarak yazılacak ve büyük olasılıkla kaynak kontrolüne girecek." />
+      </Border>
+      <TextBlock Text="{Binding Error}" Classes="danger" TextWrapping="Wrap"
+                 IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    </StackPanel>
+
+    <v:ChangePreviewView Grid.Row="2" DataContext="{Binding Preview}" />
+
+    <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,14,0,0">
+      <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
+      <Button Classes="primary" Content="Geri taşı" Command="{Binding ApplyCommand}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

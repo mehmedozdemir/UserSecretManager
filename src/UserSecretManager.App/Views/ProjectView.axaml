@@ -1,0 +1,125 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UserSecretManager.App.ViewModels"
+             xmlns:v="using:UserSecretManager.App.Views"
+             x:Class="UserSecretManager.App.Views.ProjectView"
+             x:DataType="vm:ProjectViewModel">
+
+  <Grid RowDefinitions="Auto,Auto,Auto,*">
+
+    <!-- Header -->
+    <Border Grid.Row="0" Background="{DynamicResource Surface1Brush}" BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="0,0,0,1" Padding="20,16,20,14">
+      <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10">
+          <TextBlock Text="{Binding Name}" Classes="h1" />
+          <Border Classes="chip outline">
+            <TextBlock Text="{Binding SdkText}" />
+          </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+          <Button Classes="icon" Command="{Binding OpenProjectFolderCommand}" ToolTip.Tip="Proje klasörünü aç">
+            <PathIcon Data="{StaticResource IconFolder}" />
+          </Button>
+          <Button Classes="icon" Command="{Binding RefreshCommand}" ToolTip.Tip="Yenile (F5)" HotKey="F5">
+            <PathIcon Data="{StaticResource IconRefresh}" />
+          </Button>
+        </StackPanel>
+
+        <DockPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,4,0,0">
+          <Button DockPanel.Dock="Left" Classes="icon" Padding="3" MinHeight="18" MinWidth="18" Margin="-3,0,4,0"
+                  VerticalAlignment="Top" Command="{Binding CopyProjectPathCommand}" ToolTip.Tip="Yolu kopyala">
+            <PathIcon Data="{StaticResource IconCopy}" Width="11" Height="11" />
+          </Button>
+          <SelectableTextBlock Text="{Binding ProjectPath}" Classes="caption mono" TextWrapping="Wrap" />
+        </DockPanel>
+
+        <WrapPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,12,0,0" Orientation="Horizontal">
+          <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,24,4" VerticalAlignment="Center">
+            <TextBlock Text="USERSECRETSID" Classes="section" VerticalAlignment="Center" />
+            <SelectableTextBlock Text="{Binding SecretsIdText}" Classes="mono" VerticalAlignment="Center" />
+            <Border Classes="chip outline">
+              <TextBlock Text="{Binding SecretsIdSourceText}" />
+            </Border>
+            <Button Classes="icon" Padding="3" MinHeight="18" MinWidth="18" IsVisible="{Binding HasSecretsId}"
+                    Command="{Binding CopySecretsIdCommand}" ToolTip.Tip="Id'yi kopyala">
+              <PathIcon Data="{StaticResource IconCopy}" Width="11" Height="11" />
+            </Button>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,4" VerticalAlignment="Center">
+            <TextBlock Text="ORTAMLAR" Classes="section" VerticalAlignment="Center" />
+            <ItemsControl ItemsSource="{Binding Environments}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="4" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:EnvironmentChipViewModel">
+                  <Panel ToolTip.Tip="{Binding ToolTip}">
+                    <Border Classes="chip accent" IsVisible="{Binding IsDevelopment}">
+                      <TextBlock Text="{Binding Name}" />
+                    </Border>
+                    <Border Classes="chip danger" IsVisible="{Binding HasError}">
+                      <TextBlock Text="{Binding Name}" />
+                    </Border>
+                    <Border Classes="chip outline" IsVisible="{Binding IsLaunchOnly}">
+                      <TextBlock Text="{Binding Name}" />
+                    </Border>
+                    <Border Classes="chip" IsVisible="{Binding IsRegular}">
+                      <TextBlock Text="{Binding Name}" />
+                    </Border>
+                  </Panel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </WrapPanel>
+      </Grid>
+    </Border>
+
+    <!-- Outdated banner -->
+    <Border Grid.Row="1" Classes="notice warning" CornerRadius="0" IsVisible="{Binding IsOutdated}">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <PathIcon Grid.Column="0" Data="{StaticResource IconAlert}" Classes="warning" Margin="10,0,10,0" />
+        <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                   Text="Proje dosyaları bu uygulamanın dışında değişti. Güncel hali görmek için yenileyin." />
+        <Button Grid.Column="2" Content="Yenile" Command="{Binding RefreshCommand}" Margin="0,0,10,0" />
+      </Grid>
+    </Border>
+
+    <!-- Notices -->
+    <ItemsControl Grid.Row="2" ItemsSource="{Binding Notices}" IsVisible="{Binding HasNotices}" Margin="16,12,16,0">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="6" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="vm:NoticeViewModel">
+          <v:NoticeView />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <!-- Tabs -->
+    <TabControl Grid.Row="3" SelectedIndex="{Binding SelectedTab}" Margin="12,4,12,0">
+      <TabItem Header="Yapılandırma">
+        <v:ConfigView DataContext="{Binding Config}" />
+      </TabItem>
+      <TabItem Header="{Binding SecretsTabHeader}">
+        <v:SecretsView DataContext="{Binding Secrets}" />
+      </TabItem>
+      <TabItem Header="Geçmiş">
+        <v:HistoryView DataContext="{Binding History}" />
+      </TabItem>
+    </TabControl>
+
+    <!-- Busy overlay -->
+    <Border Grid.Row="0" Grid.RowSpan="4" IsVisible="{Binding IsBusy}" Background="#40000000">
+      <ProgressBar IsIndeterminate="True" Width="200" VerticalAlignment="Center" />
+    </Border>
+  </Grid>
+</UserControl>

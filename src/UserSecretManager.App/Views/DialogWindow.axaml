@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:UserSecretManager.App.ViewModels"
+        xmlns:v="using:UserSecretManager.App.Views"
+        x:Class="UserSecretManager.App.Views.DialogWindow"
+        x:DataType="vm:DialogViewModelBase"
+        Title="{Binding Title}"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="vm:MessageDialogViewModel">
+      <Grid RowDefinitions="*,Auto" Margin="24,20,24,16">
+        <ScrollViewer Grid.Row="0">
+          <SelectableTextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+        </ScrollViewer>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,16,0,0">
+          <Button Content="{Binding CancelText}" IsVisible="{Binding HasCancel}" Command="{Binding CancelCommand}"
+                  IsCancel="True" />
+          <Button Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" IsDefault="True"
+                  Classes.primary="{Binding IsNotDestructive}" Classes.danger="{Binding IsDestructive}" />
+        </StackPanel>
+      </Grid>
+    </DataTemplate>
+    <DataTemplate DataType="vm:MigrationReviewViewModel">
+      <v:MigrationReviewView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:MoveBackViewModel">
+      <v:MoveBackView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ConfirmChangesViewModel">
+      <Grid RowDefinitions="Auto,*,Auto" Margin="20,16,20,14">
+        <TextBlock Grid.Row="0" Text="{Binding Message}" TextWrapping="Wrap" Margin="0,0,0,12" FontWeight="Medium" />
+        <v:ChangePreviewView Grid.Row="1" DataContext="{Binding Preview}" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,14,0,0">
+          <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
+          <Button Classes="primary" Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" IsDefault="True" />
+        </StackPanel>
+      </Grid>
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <ContentControl Content="{Binding}" />
+</Window>

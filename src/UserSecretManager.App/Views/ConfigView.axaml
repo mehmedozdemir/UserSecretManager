@@ -1,0 +1,184 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:UserSecretManager.App.ViewModels"
+             x:Class="UserSecretManager.App.Views.ConfigView"
+             x:DataType="vm:ConfigTabViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Border.cell">
+      <Setter Property="Width" Value="220" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1,0,0,0" />
+    </Style>
+    <Style Selector="ListBox.matrix > ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border Classes="card" Margin="0,8,0,12" ClipToBounds="True">
+    <Grid RowDefinitions="Auto,*,Auto">
+
+      <!-- Toolbar -->
+      <Border Grid.Row="0" Classes="toolbar" CornerRadius="6,6,0,0">
+        <Grid ColumnDefinitions="240,*,Auto">
+          <TextBox Grid.Column="0" Watermark="Anahtar ara…" Text="{Binding Filter}" VerticalAlignment="Center">
+            <TextBox.InnerLeftContent>
+              <PathIcon Data="{StaticResource IconSearch}" Margin="8,0,0,0" Opacity="0.6" />
+            </TextBox.InnerLeftContent>
+          </TextBox>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0" VerticalAlignment="Center">
+            <ToggleButton Classes="subtle" IsChecked="{Binding ShowSuggestedOnly}" Margin="0,0,4,0"
+                          ToolTip.Tip="Yalnızca hassas olabileceği düşünülen anahtarları göster">
+              <TextBlock Text="Öneriler" />
+            </ToggleButton>
+            <ToggleButton Classes="subtle" IsChecked="{Binding HideMoved}" Margin="0,0,4,0"
+                          ToolTip.Tip="Zaten secret'a taşınmış (dosyalarda değeri boş) anahtarları gizle">
+              <TextBlock Text="Taşınanları gizle" />
+            </ToggleButton>
+            <ToggleButton Classes="subtle" IsChecked="{Binding RevealValues}" Margin="0,0,4,0"
+                          ToolTip.Tip="Hassas değerleri maskesiz göster">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource IconEye}" />
+                <TextBlock Text="Göster" />
+              </StackPanel>
+            </ToggleButton>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+            <Button Command="{Binding SelectSuggestedCommand}" ToolTip.Tip="Değeri dolu olan tüm önerileri seç">
+              <TextBlock Text="Önerilenleri seç" />
+            </Button>
+            <Button Command="{Binding SelectVisibleCommand}" ToolTip.Tip="Listede görünen, değeri dolu tüm anahtarları seç">
+              <TextBlock Text="Görünenleri seç" />
+            </Button>
+            <Button Command="{Binding ClearSelectionCommand}" IsEnabled="{Binding HasSelection}">
+              <TextBlock Text="Seçimi temizle" />
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- Matrix -->
+      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+        <Grid RowDefinitions="Auto,*">
+          <!-- Header -->
+          <Border Grid.Row="0" Background="{DynamicResource Surface0Brush}" BorderBrush="{DynamicResource BorderBrush}"
+                  BorderThickness="0,0,0,1" MinHeight="32">
+            <StackPanel Orientation="Horizontal">
+              <Border Width="40" />
+              <Border Width="360" Padding="4,0">
+                <TextBlock Text="ANAHTAR" Classes="section" VerticalAlignment="Center" />
+              </Border>
+              <Border Width="110" Padding="4,0">
+                <TextBlock Text="DURUM" Classes="section" VerticalAlignment="Center" />
+              </Border>
+              <ItemsControl ItemsSource="{Binding Columns}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:ConfigColumnViewModel">
+                    <Border Classes="cell" ToolTip.Tip="{Binding ToolTip}" Background="Transparent">
+                      <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Header}" FontWeight="SemiBold" FontSize="12" />
+                        <Border Classes="chip accent" Padding="4,0" IsVisible="{Binding IsDevelopment}">
+                          <TextBlock Text="secrets yüklenir" FontSize="10" />
+                        </Border>
+                        <PathIcon Data="{StaticResource IconInfo}" Width="11" Height="11" Opacity="0.5"
+                                  IsVisible="{Binding IsOtherEnvironment}" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- Rows -->
+          <ListBox Grid.Row="1" Classes="plain matrix" ItemsSource="{Binding Rows}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:ConfigRowViewModel">
+                <StackPanel Orientation="Horizontal" Background="Transparent">
+                  <Border Width="40" Padding="10,0,0,0">
+                    <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="{Binding HasFileContent}"
+                              VerticalAlignment="Center" MinWidth="0" Padding="0" />
+                  </Border>
+                  <Border Width="360" Padding="4,0">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Ellipse Width="8" Height="8" Fill="{DynamicResource DangerBrush}" IsVisible="{Binding IsHighHint}"
+                               ToolTip.Tip="{Binding HintText}" />
+                      <Ellipse Width="8" Height="8" Fill="{DynamicResource WarningBrush}" IsVisible="{Binding IsMediumHint}"
+                               ToolTip.Tip="{Binding HintText}" />
+                      <Border Width="8" IsVisible="{Binding !IsSuggested}" />
+                      <SelectableTextBlock Text="{Binding Key}" Classes="mono" TextTrimming="CharacterEllipsis"
+                                           MaxWidth="330" ToolTip.Tip="{Binding Key}" />
+                    </StackPanel>
+                  </Border>
+                  <Border Width="110" Padding="4,0">
+                    <Panel VerticalAlignment="Center" HorizontalAlignment="Left">
+                      <Border Classes="chip success" IsVisible="{Binding IsMoved}"
+                              ToolTip.Tip="Değer user secrets'ta; dosyalarda boş">
+                        <TextBlock Text="Secret'ta" />
+                      </Border>
+                      <Border Classes="chip warning" IsVisible="{Binding IsOverridden}"
+                              ToolTip.Tip="User secrets'ta da var ve Development'ta dosyadaki değeri ezer; dosyalarda hâlâ değer var">
+                        <TextBlock Text="Secret + dosya" />
+                      </Border>
+                    </Panel>
+                  </Border>
+                  <ItemsControl ItemsSource="{Binding Cells}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="vm:ConfigCellViewModel">
+                        <Border Classes="cell" Background="Transparent" ToolTip.Tip="{Binding ToolTip}">
+                          <TextBlock Text="{Binding Display}" Classes="mono" VerticalAlignment="Center"
+                                     TextTrimming="CharacterEllipsis"
+                                     Classes.muted="{Binding !HasValue}" />
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <TextBlock Grid.Row="1" IsVisible="{Binding IsEmpty}" Text="{Binding EmptyMessage}" Classes="muted"
+                     HorizontalAlignment="Left" VerticalAlignment="Top" Margin="52,24" />
+        </Grid>
+      </ScrollViewer>
+
+      <!-- Footer / primary action -->
+      <Border Grid.Row="2" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,10">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+            <TextBlock Text="{Binding SelectionSummary}" FontWeight="Medium" />
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Ellipse Width="8" Height="8" Fill="{DynamicResource DangerBrush}" />
+              <TextBlock Text="büyük olasılıkla hassas" Classes="caption" />
+              <Ellipse Width="8" Height="8" Fill="{DynamicResource WarningBrush}" Margin="8,0,0,0" />
+              <TextBlock Text="hassas olabilir" Classes="caption" />
+            </StackPanel>
+          </StackPanel>
+          <Button Grid.Column="1" Classes="primary" Command="{Binding MigrateCommand}" HotKey="Ctrl+Enter"
+                  ToolTip.Tip="Seçilen anahtarları incelemek ve user secrets'a taşımak için (Ctrl+Enter)">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Secret'a taşı…" />
+              <PathIcon Data="{StaticResource IconArrowRight}" Foreground="White" />
+            </StackPanel>
+          </Button>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>
