@@ -8,7 +8,7 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <Authors>Mehmet Özdemir</Authors>
     <Product>UserSecretManager</Product>
     <Copyright>© 2026 Mehmet Özdemir</Copyright>
