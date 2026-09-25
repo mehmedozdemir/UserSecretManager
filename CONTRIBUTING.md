@@ -71,3 +71,15 @@ git push origin v0.2.0                     # release iş akışı paketleri üre
 ```
 
 Hotfix: `main`'den `hotfix/v0.2.1` dalı → düzeltme + `./scripts/release.ps1 -Version 0.2.1 -NoBranch` → merge → etiket.
+
+## GitHub kurulumu (bir kez)
+
+```powershell
+gh auth login
+./scripts/setup-github.ps1 -Repository UserSecretManager          # özel repo oluşturur, main + etiketleri push eder
+./scripts/setup-github.ps1 -Repository UserSecretManager -SkipCreate  # yalnızca kuralları yeniden uygular
+```
+
+Betik şunları ayarlar: `main` için PR ve yeşil CI zorunluluğu (Windows/Linux/macOS build-test + `conventions`),
+force-push ve silme yasağı, çözülmemiş yorumla birleştirme yasağı; merge seçenekleri olarak squash (feature/fix) ve
+merge commit (release/hotfix), birleşen dalların otomatik silinmesi.
