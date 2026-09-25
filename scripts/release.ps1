@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Prepares a release: creates release/vX.Y.Z, bumps the version and moves [Unreleased] in CHANGELOG.md.
 
