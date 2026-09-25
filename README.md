@@ -10,6 +10,11 @@ secret'ları görüntüleyip yönetmenizi sağlayan çapraz platform masaüstü 
 - Değişiklikler uygulanmadan önce satır satır diff önizlemesi gösterilir. Yorumlar, girinti ve BOM korunur.
 - Her işlem yedeklenir; **Geçmiş** sekmesinden tek tıkla geri alınır.
 - Secret'ları görüntüleyin, düzenleyin, silin veya appsettings'e geri taşıyın.
+- `ocelot.json`, `serilog.json` gibi ek JSON yapılandırma dosyalarını projeye ekleyin.
+- **Etkin yapılandırma:** seçilen ortam ve launch profili için uygulamanın göreceği son değerleri, kaynaklarını ve
+  boş kalan anahtarları görün.
+- **Profiller:** secret değerlerinin şifreli, adlandırılmış kopyaları (Local, Staging DB…); tek adımda uygulayın.
+- **Aktarım:** secret'ları parolalı dosya ile dışa/içe aktarın; ekip için `secrets.template.json` üretin.
 
 Tasarım kararları ve gerekçeleri: [docs/ANALYSIS.md](docs/ANALYSIS.md).
 
@@ -60,6 +65,8 @@ Uygulama verileri:
 |---|---|
 | `workspace.json` | Eklenen solution/projeler, favoriler, tema. **Secret değeri içermez.** |
 | `backups/<tarih>/` | Her işlemden önceki dosya kopyaları (son 50 işlem). `secrets.json` ile aynı güven seviyesinde, kullanıcı profilinizde durur. |
+| `profiles/<UserSecretsId>/` | Şifreli secret profilleri. Windows'ta DPAPI (kullanıcı hesabına bağlı); macOS/Linux'ta `profiles.key` ile AES-256-GCM. |
+| `profiles.key` | Yalnızca macOS/Linux: profil anahtarı, sadece kullanıcı okuyabilir (`600`). Silinirse profiller açılamaz. |
 
 ## Mimari
 

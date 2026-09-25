@@ -1,6 +1,6 @@
 # UserSecretManager — Analiz ve Tasarım
 
-> Durum: v1 kapsamı onaylandı · Son güncelleme: 2026-09-25
+> Durum: v1 yayında (0.1.0), v2 tamamlandı · Son güncelleme: 2026-09-25
 
 ## 1. Amaç
 
@@ -33,10 +33,15 @@ secret'ları daha sonra okuyup yönetebilen, çapraz platform bir masaüstü uyg
 | K7 | Her işlem öncesi **yedek** + işlem geçmişi; geçmişten geri yükleme | Geri alınabilirlik |
 | K8 | Uygulama hafızası (`workspace.json`) **asla secret değeri tutmaz** | Güvenlik |
 | K9 | `secrets.json` doğrudan okunur/yazılır, `dotnet` CLI çağrılmaz | Hız, SDK bağımsızlığı |
+| K10 | Ek JSON dosyaları tüm ortamlarda geçerli ve **varsayılan kaynaklardan sonra** yüklenmiş kabul edilir | `builder.Configuration.AddJsonFile(...)` tipik olarak varsayılanlardan sonra çağrılır; gerçek sıra `Program.cs`'e bağlıdır ve arayüzde belirtilir |
+| K11 | Etkin yapılandırma sırası: `appsettings.json` → `appsettings.{Ortam}.json` → user secrets → launch profili ortam değişkenleri (`__` → `:`) → ek dosyalar | Varsayılan host sırası; user secrets Development dışında varsayılan olarak kapalı |
+| K12 | Profiller UserSecretsId başına tutulur ve kullanıcıya bağlı şifrelenir (Windows: DPAPI, diğer: kullanıcıya özel anahtar dosyası + AES-256-GCM). Anahtar adları düz metin, değerler şifreli | Secret'lar id başına; profil adları ve anahtar listesi hassas değil, listeleme için gerekli |
+| K13 | Profil/içe aktarma uygulanırken, kaynak mevcut anahtarların hepsini içermiyorsa varsayılan mod **birleştir** | "Değiştir" eksik anahtarları siler; sessiz veri kaybı önlenir |
+| K14 | Dışa aktarım: PBKDF2-SHA256 (600 000 iterasyon) + AES-256-GCM, başlık AAD olarak bağlı; dosyadaki iterasyon sayısı üst sınırlı | Parola ile taşınabilir; kurcalama ve DoS'a karşı dayanıklı |
 
 ## 4. Kapsam
 
-### v1 (bu sürüm)
+### v1 (0.1.0)
 - Solution (`.sln`, `.slnx`) veya proje (`.csproj`) ekleme, uygulama hafızasında tutma (favori, son açılan, bulunamayan proje tespiti)
 - Proje keşfi: `appsettings*.json`, `launchSettings.json` ortamları, `UserSecretsId` kaynağı, user secrets desteği kontrolü, paylaşılan ID tespiti
 - Anahtar × ortam matrisi; arama, filtre, hassas anahtar önerileri (ad ve değer kalıpları)
@@ -46,11 +51,16 @@ secret'ları daha sonra okuyup yönetebilen, çapraz platform bir masaüstü uyg
 - Dosya değişikliği izleme (dışarıdan düzenlemede yenileme uyarısı)
 - Git reposu uyarısı (değer git geçmişinde kalır → rotate önerisi)
 
-### v2 (planlanan)
-- Etkin yapılandırma görünümü (seçili ortam için birleşik değerler + kaynak)
-- Ortam profilleri: ortam başına şifreli (DPAPI/Keychain) secret setleri, aktif profili `secrets.json`'a uygulama
-- Parola korumalı dışa/içe aktarma, `secrets.template.json` üretimi
-- Özel config dosyaları (ör. `ocelot.json`) ekleme
+### v2 (tamamlandı)
+- Etkin yapılandırma görünümü: ortam + launch profili seçimi, değer kaynağı, ezilen katmanlar, boş değer uyarısı
+- Secret profilleri: şifreli, adlandırılmış setler; şu anki secret'lardan veya bir ortamdan oluşturma; değiştir/birleştir
+- Parola korumalı dışa/içe aktarma, `secrets.template.json` üretimi ve şablondan eksik anahtarları tamamlama
+- Ek config dosyaları (ör. `ocelot.json`) ekleme
+
+### Sonraki adaylar
+- CLI (`usm migrate`, `usm export`) — Core katmanı hazır
+- Azure Key Vault / AWS Secrets Manager'a aktarım (Production değerleri için)
+- `Program.cs` analiziyle ek dosyaların gerçek yüklenme sırasını tespit
 
 ## 5. Mimari
 
@@ -60,6 +70,10 @@ UserSecretManager.Core   (UI bağımsız, test edilir)
 ├── Discovery       .sln/.slnx okuma, proje inceleme, UserSecretsId çözümü
 ├── Secrets         secrets.json yolu, okuma/yazma, UserSecretsId ekleme
 ├── Analysis        hassas anahtar önerileri
+├── Effective       ortam bazında etkin yapılandırma hesaplama
+├── Profiles        şifreli secret profilleri
+├── Security        kullanıcıya bağlı şifreleme (DPAPI / anahtar dosyası)
+├── Transfer        parolalı dışa/içe aktarma, secrets.template.json
 ├── Migration       plan oluşturma (çakışma/uyarı), uygulama, geri taşıma
 ├── History         yedek + işlem geçmişi + geri yükleme
 ├── Workspace       kalıcı proje listesi ve tercihler
@@ -78,6 +92,8 @@ UserSecretManager.Core.Tests (xUnit v3)
 ## 6. Güvenlik notları
 - Yedekler kullanıcı profilinde (`LocalApplicationData/UserSecretManager/backups`) düz metin tutulur; `secrets.json` ile aynı güven seviyesindedir. Son 50 işlem saklanır.
 - Uygulama hiçbir değeri loglamaz, ağ erişimi yoktur.
+- Profiller başka bir kullanıcı veya makinede açılamaz (DPAPI / yerel anahtar). Taşımak için dışa aktarma kullanılır.
+- Dışa aktarım dosyası parolayla korunur; parola dosyayla aynı kanaldan gönderilmemelidir.
 - Taşınan değerler git geçmişinde kalır; uygulama repo tespit ettiğinde değerlerin değiştirilmesini (rotate) önerir.
 
 ## 7. Riskler
