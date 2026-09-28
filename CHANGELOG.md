@@ -9,6 +9,18 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
 
 ## [Unreleased]
 
+### Added
+- Uygulama logosu (`{ }` + anahtar deliği): pencere, görev çubuğu ve `.exe` simgesi; küçük boyutlar için sade sürüm.
+  Kaynak SVG'ler `assets/logo/` altında.
+- Windows kurulumu (Velopack): kullanıcı bazında, yönetici izni gerektirmeyen `Setup.exe`, Başlat menüsü kısayolu ve
+  kaldırma kaydı. Kurulumsuz kullanım için taşınabilir zip. Linux/macOS tek dosyalık paketler.
+- "Güncellemeleri denetle": kurulu kopya GitHub Releases'tan yeni sürümü indirip yeniden başlar. Yalnızca kullanıcı
+  istediğinde ağa çıkılır. Alt çubukta uygulama sürümü görünür.
+- `scripts/package.ps1`: tüm dağıtım paketlerini ve `SHA256SUMS.txt`'i üretir, isteğe bağlı olarak sürüme yükler.
+
+### Changed
+- Metin kutularında Avalonia 12'de kullanımdan kalkan `Watermark` yerine `PlaceholderText` kullanılıyor.
+
 ## [0.3.0] - 2026-09-26
 
 ### Added

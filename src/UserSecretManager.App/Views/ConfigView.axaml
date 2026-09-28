@@ -25,7 +25,7 @@
       <!-- Toolbar -->
       <Border Grid.Row="0" Classes="toolbar" CornerRadius="6,6,0,0">
         <Grid ColumnDefinitions="240,*,Auto">
-          <TextBox Grid.Column="0" Watermark="Anahtar ara…" Text="{Binding Filter}" VerticalAlignment="Center">
+          <TextBox Grid.Column="0" PlaceholderText="Anahtar ara…" Text="{Binding Filter}" VerticalAlignment="Center">
             <TextBox.InnerLeftContent>
               <PathIcon Data="{StaticResource IconSearch}" Margin="8,0,0,0" Opacity="0.6" />
             </TextBox.InnerLeftContent>

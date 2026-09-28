@@ -8,17 +8,8 @@ permissions:
   contents: write
 
 jobs:
-  publish:
-    strategy:
-      matrix:
-        include:
-          - rid: win-x64
-            os: windows-latest
-          - rid: linux-x64
-            os: ubuntu-latest
-          - rid: osx-arm64
-            os: macos-latest
-    runs-on: ${{ matrix.os }}
+  release:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -37,33 +28,8 @@ jobs:
       - name: Test
         run: dotnet test UserSecretManager.slnx -c Release
 
-      - name: Publish
-        run: >
-          dotnet publish src/UserSecretManager.App -c Release -r ${{ matrix.rid }} --self-contained
-          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish/${{ matrix.rid }}
-
-      - name: Archive
-        shell: bash
-        run: |
-          cd publish/${{ matrix.rid }}
-          7z a ../../UserSecretManager-${GITHUB_REF_NAME}-${{ matrix.rid }}.zip . > /dev/null || zip -r ../../UserSecretManager-${GITHUB_REF_NAME}-${{ matrix.rid }}.zip .
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.rid }}
-          path: UserSecretManager-*.zip
-
-  github-release:
-    needs: publish
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          path: dist
-          merge-multiple: true
-
       - name: Extract release notes from CHANGELOG
+        shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
           awk -v heading="## [$version]" '
@@ -79,4 +45,10 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag
+        run: gh release create "$env:GITHUB_REF_NAME" --title "$env:GITHUB_REF_NAME" --notes-file notes.md --verify-tag
+
+      - name: Package and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: ./scripts/package.ps1 -Upload -Repository "${{ github.repository }}"

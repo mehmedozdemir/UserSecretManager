@@ -113,6 +113,14 @@ public sealed class AvaloniaPlatformServices(Func<Window?> owner) : IDialogServi
         }
     }
 
+    public async Task OpenUrlAsync(string url)
+    {
+        if (owner() is { } window && Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps)
+        {
+            await window.Launcher.LaunchUriAsync(uri);
+        }
+    }
+
     public async Task OpenFolderAsync(string path)
     {
         var directory = Directory.Exists(path) ? path : Path.GetDirectoryName(path);

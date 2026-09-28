@@ -45,7 +45,7 @@
       <!-- Filter bar -->
       <Border Grid.Row="1" Padding="12,8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
         <Grid ColumnDefinitions="240,*">
-          <TextBox Grid.Column="0" Watermark="Anahtar ara…" Text="{Binding Filter}" VerticalAlignment="Center">
+          <TextBox Grid.Column="0" PlaceholderText="Anahtar ara…" Text="{Binding Filter}" VerticalAlignment="Center">
             <TextBox.InnerLeftContent>
               <PathIcon Data="{StaticResource IconSearch}" Margin="8,0,0,0" Opacity="0.6" />
             </TextBox.InnerLeftContent>

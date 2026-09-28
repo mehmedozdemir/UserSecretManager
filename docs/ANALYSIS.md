@@ -92,7 +92,10 @@ UserSecretManager.Core.Tests (xUnit v3)
 
 ## 6. Güvenlik notları
 - Yedekler kullanıcı profilinde (`LocalApplicationData/UserSecretManager/backups`) düz metin tutulur; `secrets.json` ile aynı güven seviyesindedir. Son 50 işlem saklanır.
-- Uygulama hiçbir değeri loglamaz, ağ erişimi yoktur.
+- Uygulama hiçbir değeri loglamaz. Tek ağ erişimi, kullanıcı "Güncellemeleri denetle"ye bastığında GitHub
+  Releases'a yapılan istektir; kendiliğinden ağa çıkmaz.
+- Kurulum (Velopack) `%LocalAppData%\UserSecretManager.Desktop` klasörüne yapılır; uygulama verileri ayrı
+  (`%LocalAppData%\UserSecretManager`) tutulur, böylece kaldırma/güncelleme kullanıcı verisini silmez.
 - Profiller başka bir kullanıcı veya makinede açılamaz (DPAPI / yerel anahtar). Taşımak için dışa aktarma kullanılır.
 - Dışa aktarım dosyası parolayla korunur; parola dosyayla aynı kanaldan gönderilmemelidir.
 - Taşınan değerler git geçmişinde kalır; uygulama repo tespit ettiğinde değerlerin değiştirilmesini (rotate) önerir.

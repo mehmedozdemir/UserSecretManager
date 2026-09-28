@@ -21,13 +21,13 @@
     <!-- Name and description -->
     <Grid Grid.Row="0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,10">
       <TextBlock Grid.Row="0" Grid.Column="0" Text="Ad" VerticalAlignment="Center" Margin="0,0,12,0" />
-      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}" Watermark="ör. Local, Staging DB" />
+      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}" PlaceholderText="ör. Local, Staging DB" />
       <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding NameError}" IsVisible="{Binding HasNameError}"
                  Classes="danger" Margin="0,4,0,0" />
       <TextBlock Grid.Row="2" Grid.Column="1" IsVisible="{Binding WillOverwrite}" Margin="0,4,0,0"
                  Foreground="{DynamicResource WarningBrush}" Text="Bu adda bir profil var; kaydedince değerleri değiştirilecek." />
       <TextBlock Grid.Row="3" Grid.Column="0" Text="Açıklama" VerticalAlignment="Center" Margin="0,8,12,0" />
-      <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Description}" Margin="0,8,0,0" Watermark="İsteğe bağlı" />
+      <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Description}" Margin="0,8,0,0" PlaceholderText="İsteğe bağlı" />
     </Grid>
 
     <!-- Starting values (new profiles only) -->
@@ -104,7 +104,7 @@
               <DataTemplate DataType="vm:ProfileEntryViewModel">
                 <Grid ColumnDefinitions="2*,3*,72" Margin="12,4">
                   <StackPanel Grid.Column="0">
-                    <TextBox Classes="mono cellEditor" Text="{Binding Key}" Watermark="Section:Key" />
+                    <TextBox Classes="mono cellEditor" Text="{Binding Key}" PlaceholderText="Section:Key" />
                     <TextBlock Text="{Binding KeyError}" IsVisible="{Binding HasKeyError}" Classes="danger"
                                FontSize="11.5" Margin="2,2,0,0" />
                   </StackPanel>

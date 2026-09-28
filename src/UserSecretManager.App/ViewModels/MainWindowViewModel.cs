@@ -35,6 +35,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private bool _statusIsError;
 
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CheckForUpdatesCommand))]
+    private bool _isCheckingUpdates;
+
     public MainWindowViewModel(AppServices services)
     {
         _services = services;
@@ -65,6 +69,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     };
 
     public string DataDirectory => _services.Location.RootDirectory;
+
+    public static string VersionText => "v" + UpdateService.CurrentVersion;
 
     /// <summary>Extra configuration files remembered for a project.</summary>
     public IReadOnlyList<string> GetCustomConfigFiles(string projectPath) =>
@@ -338,6 +344,55 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private Task OpenDataFolderAsync() => _services.Platform.OpenFolderAsync(_services.Location.RootDirectory);
+
+    private bool CanCheckForUpdates() => !IsCheckingUpdates;
+
+    [RelayCommand(CanExecute = nameof(CanCheckForUpdates))]
+    private async Task CheckForUpdatesAsync()
+    {
+        var dialogs = _services.Dialogs;
+        IsCheckingUpdates = true;
+        try
+        {
+            ShowStatus("Güncellemeler denetleniyor…");
+            switch (await _services.Updates.CheckAsync())
+            {
+                case UpdateCheckStatus.NotInstalled:
+                    var open = await dialogs.ConfirmAsync("Güncelleme",
+                        "Bu kopya kurulum (Setup) ile yüklenmediği için kendini güncelleyemez. Son sürümü sürümler sayfasından indirebilirsiniz.",
+                        "Sürümler sayfasını aç");
+                    if (open)
+                    {
+                        await _services.Platform.OpenUrlAsync(UpdateService.ReleasesUrl);
+                    }
+
+                    break;
+                case UpdateCheckStatus.UpToDate:
+                    ShowStatus($"Uygulama güncel ({VersionText}).");
+                    break;
+                case UpdateCheckStatus.Available:
+                    var install = await dialogs.ConfirmAsync("Güncelleme mevcut",
+                        $"v{_services.Updates.AvailableVersion} sürümü yayınlandı (kurulu: {VersionText}). İndirilip uygulama yeniden başlatılsın mı?\n\n" +
+                        "Kaydedilmemiş secret değişiklikleriniz varsa önce kaydedin.",
+                        "İndir ve yeniden başlat");
+                    if (install)
+                    {
+                        ShowStatus("Güncelleme indiriliyor…");
+                        await _services.Updates.DownloadAndRestartAsync();
+                    }
+
+                    break;
+            }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException or TaskCanceledException)
+        {
+            ShowStatus($"Güncelleme denetlenemedi: {ex.Message}", isError: true);
+        }
+        finally
+        {
+            IsCheckingUpdates = false;
+        }
+    }
 
     private static void ApplyTheme(string theme)
     {

@@ -8,4 +8,7 @@ public interface IPlatformService
 
     /// <summary>Opens a folder in the system file manager.</summary>
     Task OpenFolderAsync(string path);
+
+    /// <summary>Opens a web page in the default browser.</summary>
+    Task OpenUrlAsync(string url);
 }

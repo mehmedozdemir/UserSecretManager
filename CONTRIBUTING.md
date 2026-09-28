@@ -67,8 +67,12 @@ git switch main; git pull
 # PR açın → CI yeşil → main'e merge commit ile birleştirin, ardından:
 git switch main; git pull
 git tag -a v0.2.0 -m "Release v0.2.0"
-git push origin v0.2.0                     # release iş akışı paketleri üretir ve GitHub Release oluşturur
+git push origin v0.2.0
+gh release create v0.2.0 --verify-tag --notes-file <CHANGELOG bölümü>   # Actions kullanılmıyorsa elle
+./scripts/package.ps1 -Upload              # Setup, taşınabilir, Linux/macOS paketleri + güncelleme akışı
 ```
+
+Kurulu kopyalar güncellemeyi GitHub Releases'tan alır; bu yüzden her sürümde `package.ps1 -Upload` çalıştırılmalıdır.
 
 Hotfix: `main`'den `hotfix/v0.2.1` dalı → düzeltme + `./scripts/release.ps1 -Version 0.2.1 -NoBranch` → merge → etiket.
 

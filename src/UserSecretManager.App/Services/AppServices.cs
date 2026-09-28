@@ -23,6 +23,7 @@ public sealed class AppServices
         Planner = new MigrationPlanner(SecretsStore);
         Workspace = new WorkspaceStore(location.WorkspaceFile);
         Profiles = new SecretProfileStore(location.ProfilesDirectory, SecretProtectors.CreateDefault(location));
+        Updates = new UpdateService();
     }
 
     public AppDataLocation Location { get; }
@@ -44,4 +45,6 @@ public sealed class AppServices
     public WorkspaceStore Workspace { get; }
 
     public SecretProfileStore Profiles { get; }
+
+    public UpdateService Updates { get; }
 }

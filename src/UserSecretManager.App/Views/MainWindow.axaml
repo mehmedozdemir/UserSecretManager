@@ -5,6 +5,7 @@
         x:Class="UserSecretManager.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="User Secret Manager"
+        Icon="/Assets/app.ico"
         Width="1360" Height="840" MinWidth="960" MinHeight="600"
         WindowStartupLocation="CenterScreen"
         DragDrop.AllowDrop="True">
@@ -25,9 +26,7 @@
             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
       <Grid RowDefinitions="Auto,Auto,*,Auto">
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="16,16,16,12">
-          <Border Width="30" Height="30" CornerRadius="7" Background="{DynamicResource AccentBrush}">
-            <PathIcon Data="{StaticResource IconKey}" Foreground="White" Width="16" Height="16" />
-          </Border>
+          <Image Source="/Assets/logo-64.png" Width="32" Height="32" />
           <StackPanel VerticalAlignment="Center">
             <TextBlock Text="User Secret Manager" FontWeight="SemiBold" FontSize="14" />
             <TextBlock Text="appsettings → dotnet user-secrets" Classes="caption" FontSize="11" />
@@ -35,7 +34,7 @@
         </StackPanel>
 
         <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="12,0,12,8">
-          <TextBox Grid.Column="0" Watermark="Proje ara…" Text="{Binding SidebarFilter}">
+          <TextBox Grid.Column="0" PlaceholderText="Proje ara…" Text="{Binding SidebarFilter}">
             <TextBox.InnerLeftContent>
               <PathIcon Data="{StaticResource IconSearch}" Margin="8,0,0,0" Opacity="0.6" />
             </TextBox.InnerLeftContent>
@@ -116,6 +115,12 @@
                     ToolTip.Tip="{Binding DataDirectory, StringFormat='Uygulama verileri ve yedekler: {0}'}">
               <PathIcon Data="{StaticResource IconFolder}" />
             </Button>
+            <Button Classes="icon" Command="{Binding CheckForUpdatesCommand}" ToolTip.Tip="Güncellemeleri denetle">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource IconRefresh}" />
+                <TextBlock Text="{x:Static vm:MainWindowViewModel.VersionText}" FontSize="12" />
+              </StackPanel>
+            </Button>
           </StackPanel>
         </Border>
       </Grid>
@@ -127,7 +132,7 @@
 
       <StackPanel IsVisible="{Binding CurrentContent, Converter={x:Static ObjectConverters.IsNull}}"
                   VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="520">
-        <PathIcon Data="{StaticResource IconKey}" Width="40" Height="40" Opacity="0.35" />
+        <Image Source="/Assets/logo-64.png" Width="56" Height="56" Opacity="0.85" HorizontalAlignment="Center" />
         <TextBlock Text="Bir proje seçin" Classes="h1" HorizontalAlignment="Center" />
         <TextBlock Classes="muted" TextWrapping="Wrap" TextAlignment="Center"
                    Text="Soldan bir proje veya solution seçin. appsettings dosyalarındaki hassas değerleri seçip dotnet user-secrets'a taşıyabilir, mevcut secret'ları görüntüleyip düzenleyebilirsiniz." />

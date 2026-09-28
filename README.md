@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo/logo-256.png" width="128" alt="User Secret Manager"></p>
+
 # User Secret Manager
 
 .NET projelerindeki `appsettings*.json` dosyalarında duran hassas değerleri (connection string, parola, API anahtarı…)
@@ -28,9 +30,25 @@ Tasarım kararları ve gerekçeleri: [docs/ANALYSIS.md](docs/ANALYSIS.md).
 - Production/Staging dosyalarındaki değerler varsayılan olarak **temizlenmez**. Temizlemeyi seçerseniz o ortamda değeri
   ortam değişkeni (ör. `ConnectionStrings__Default`) veya bir secret vault ile sağlamanız gerekir.
 
+## Kurulum
+
+[Son sürüm](https://github.com/mehmedozdemir/UserSecretManager/releases/latest) sayfasından:
+
+| Platform | Dosya | Not |
+|---|---|---|
+| Windows | `UserSecretManager.Desktop-win-Setup.exe` | Kullanıcı bazında kurulur (yönetici izni gerekmez), Başlat menüsüne eklenir, "Güncellemeleri denetle" ile kendini günceller. |
+| Windows (kurulumsuz) | `UserSecretManager.Desktop-win-Portable.zip` | Açıp `User Secret Manager.exe`'yi çalıştırın. |
+| Linux x64 | `UserSecretManager-vX.Y.Z-linux-x64.tar.gz` | Tek dosya, .NET gerektirmez. |
+| macOS (Apple Silicon) | `UserSecretManager-vX.Y.Z-osx-arm64.tar.gz` | Tek dosya; imzasız olduğu için `xattr -d com.apple.quarantine UserSecretManager`. |
+
+Paketler imzalı değildir; Windows SmartScreen "Yine de çalıştır" isteyebilir. Bütünlük için `SHA256SUMS.txt`.
+Kaldırma (Ayarlar → Uygulamalar) yalnızca uygulamayı siler; proje listesi, profiller ve yedekler
+`%LocalAppData%\UserSecretManager` altında kalır.
+
 ## Gereksinimler
 
-- .NET SDK 10.0 (derlemek için)
+- Çalıştırmak için: hiçbir şey (paketler self-contained)
+- Derlemek için: .NET SDK 10.0
 - Windows 10+, macOS 12+ veya bir X11/Wayland Linux masaüstü
 
 ## Hızlı başlangıç
@@ -46,10 +64,11 @@ dotnet build UserSecretManager.slnx
 dotnet test  UserSecretManager.slnx
 ```
 
-Tek dosyalık yayın örneği:
+Tüm dağıtım paketleri (Windows kurulum + taşınabilir, Linux, macOS):
 
-```bash
-dotnet publish src/UserSecretManager.App -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+```powershell
+./scripts/package.ps1            # artifacts/<sürüm>/dist
+./scripts/package.ps1 -Upload    # ayrıca GitHub'daki vX.Y.Z sürümüne yükler
 ```
 
 ## Yapılandırma
