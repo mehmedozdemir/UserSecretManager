@@ -9,6 +9,8 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenir.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-28
+
 ### Added
 - Uygulama logosu (`{ }` + anahtar deliği): pencere, görev çubuğu ve `.exe` simgesi; küçük boyutlar için sade sürüm.
   Kaynak SVG'ler `assets/logo/` altında.
